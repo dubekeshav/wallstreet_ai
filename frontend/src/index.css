@@ -1,0 +1,161 @@
+
+@import url('https://fonts.googleapis.com/css2?family=Happy+Monkey&display=swap');
+@font-face {
+  font-family: 'ClashDisplay';
+  src: url('https://cdn.jsdelivr.net/gh/FoundersGrotesk/ClashDisplay/Fonts/WEB/fonts/ClashDisplay-Variable.woff2') format('woff2');
+  font-weight: 200 700;
+  font-display: swap;
+}
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 36 33% 97%;
+    --foreground: 30 9% 22%;
+
+    --card: 36 33% 97%;
+    --card-foreground: 30 9% 22%;
+
+    --popover: 36 33% 97%;
+    --popover-foreground: 30 9% 22%;
+
+    --primary: 30 84% 60%;
+    --primary-foreground: 36 33% 97%;
+
+    --secondary: 35 33% 90%;
+    --secondary-foreground: 30 9% 22%;
+
+    --muted: 35 33% 90%;
+    --muted-foreground: 30 6% 45%;
+
+    --accent: 35 33% 90%;
+    --accent-foreground: 30 9% 22%;
+
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 36 33% 97%;
+
+    --border: 35 13% 80%;
+    --input: 35 13% 80%;
+    --ring: 30 84% 50%;
+
+    --radius: 0.75rem;
+
+    --sidebar-background: 35 38% 92%;
+    --sidebar-foreground: 30 9% 25%;
+    --sidebar-primary: 30 84% 60%;
+    --sidebar-primary-foreground: 36 33% 97%;
+    --sidebar-accent: 35 26% 85%;
+    --sidebar-accent-foreground: 30 9% 25%;
+    --sidebar-border: 35 13% 80%;
+    --sidebar-ring: 30 84% 50%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-display tracking-tight;
+  }
+}
+
+@layer components {
+  .glass-morphism {
+    @apply bg-white/60 backdrop-blur-lg border border-white/40 shadow-lg;
+  }
+  
+  .chat-bubble {
+    position: relative;
+    @apply rounded-2xl px-4 py-3 max-w-[85%];
+  }
+  
+  .chat-bubble-user {
+    @apply bg-gradient-to-br from-primary to-amber-500 text-primary-foreground ml-auto;
+  }
+  
+  .chat-bubble-ai {
+    @apply bg-secondary text-secondary-foreground;
+  }
+  
+  .typing-indicator {
+    @apply inline-flex space-x-1 items-center;
+  }
+  
+  .typing-dot {
+    @apply w-2 h-2 rounded-full bg-primary-foreground;
+  }
+  
+  .scroll-shadow {
+    background: 
+      linear-gradient(to bottom, var(--background) 0%, transparent 100%) top,
+      linear-gradient(to top, var(--background) 0%, transparent 100%) bottom;
+    background-size: 100% 40px;
+    background-repeat: no-repeat;
+    background-attachment: local, local;
+  }
+  
+  .btn-shine {
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .btn-shine::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(
+      to bottom right,
+      rgba(255, 255, 255, 0) 0%,
+      rgba(255, 255, 255, 0.2) 100%
+    );
+    transform: rotate(30deg);
+    transition: transform 0.5s;
+  }
+  
+  .btn-shine:hover::after {
+    transform: rotate(30deg) translateY(-50px);
+  }
+
+  /* Gen Z additions */
+  .bg-size-200 {
+    background-size: 200% 100%;
+  }
+  
+  .bg-pos-0 {
+    background-position: 0% 0%;
+  }
+  
+  .bg-pos-100 {
+    background-position: 100% 0%;
+  }
+  
+  .hover\:bg-pos-100:hover {
+    background-position: 100% 0%;
+  }
+}
+
+@layer utilities {
+  .animate-dots-1 {
+    animation: dots 1.4s infinite 0.2s;
+  }
+  
+  .animate-dots-2 {
+    animation: dots 1.4s infinite 0.4s;
+  }
+  
+  .animate-dots-3 {
+    animation: dots 1.4s infinite 0.6s;
+  }
+}
