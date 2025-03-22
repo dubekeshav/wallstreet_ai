@@ -1,0 +1,11 @@
+fastapi
+uvicorn
+langchain
+huggingface_hub
+sentence-transformers
+chromadb
+requests
+matplotlib
+pandas
+python-dotenv
+starlette
