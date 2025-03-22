@@ -1,7 +1,7 @@
 
 import React, { useState, KeyboardEvent, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Send } from 'lucide-react';
+import { Send, Mic, Image, Paperclip } from 'lucide-react';
 import { useChat } from '@/context/ChatContext';
 import { toast } from 'sonner';
 
@@ -47,6 +47,11 @@ const ChatInput: React.FC = () => {
     const userMessage = input.trim();
     setInput('');
     
+    // Reset textarea height
+    if (inputRef.current) {
+      inputRef.current.style.height = 'auto';
+    }
+    
     // Add user message to chat
     addMessage(userMessage, 'user');
     
@@ -82,27 +87,66 @@ const ChatInput: React.FC = () => {
   
   return (
     <div className="border-t bg-background/95 backdrop-blur-sm p-4 rounded-b-lg">
-      <div className="relative flex items-end gap-2 max-w-3xl mx-auto">
-        <textarea
-          ref={inputRef}
-          className="flex-1 resize-none border rounded-lg px-4 py-3 pr-12 focus:outline-none focus:ring-2 focus:ring-primary/30 transition-all h-12 max-h-[150px]"
-          placeholder="Ask about stocks, funds, investments..."
-          value={input}
-          onChange={(e) => {
-            setInput(e.target.value);
-            autoResize(e);
-          }}
-          onKeyDown={handleKeyDown}
-          disabled={isLoading}
-          rows={1}
-        />
-        <Button 
-          onClick={handleSubmit} 
-          disabled={!input.trim() || isLoading}
-          className="flex-shrink-0 group transition-transform hover:scale-105 active:scale-95 disabled:scale-100"
-        >
-          <Send className="w-4 h-4 transition-transform group-hover:translate-x-1 group-hover:-translate-y-1" />
-        </Button>
+      <div className="relative flex flex-col items-end gap-2 max-w-3xl mx-auto">
+        <div className="w-full flex items-center gap-2 bg-background rounded-lg border shadow-sm focus-within:ring-2 focus-within:ring-primary/30 transition-all p-1">
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="flex-shrink-0 text-muted-foreground hover:text-foreground" 
+            disabled={isLoading}
+            onClick={() => toast.info("Attachment functionality coming soon!")}
+          >
+            <Paperclip className="h-5 w-5" />
+          </Button>
+          
+          <textarea
+            ref={inputRef}
+            className="flex-1 resize-none bg-transparent border-0 focus:ring-0 focus:outline-none px-2 py-2 h-10 max-h-[150px]"
+            placeholder="Ask about stocks, funds, investments..."
+            value={input}
+            onChange={(e) => {
+              setInput(e.target.value);
+              autoResize(e);
+            }}
+            onKeyDown={handleKeyDown}
+            disabled={isLoading}
+            rows={1}
+          />
+          
+          <div className="flex items-center gap-1">
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="flex-shrink-0 text-muted-foreground hover:text-foreground" 
+              disabled={isLoading}
+              onClick={() => toast.info("Image upload functionality coming soon!")}
+            >
+              <Image className="h-5 w-5" />
+            </Button>
+            
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="flex-shrink-0 text-muted-foreground hover:text-foreground" 
+              disabled={isLoading}
+              onClick={() => toast.info("Voice input functionality coming soon!")}
+            >
+              <Mic className="h-5 w-5" />
+            </Button>
+            
+            <Button 
+              onClick={handleSubmit} 
+              disabled={!input.trim() || isLoading}
+              className="flex-shrink-0 group transition-transform hover:scale-105 active:scale-95 disabled:scale-100"
+            >
+              <Send className="w-4 h-4 transition-transform group-hover:translate-x-1 group-hover:-translate-y-1" />
+            </Button>
+          </div>
+        </div>
+        
+        <div className="text-xs text-muted-foreground px-2">
+          FinanceIQ may display inaccurate information, including about people, finance, or investments.
+        </div>
       </div>
     </div>
   );

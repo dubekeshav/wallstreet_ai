@@ -109,7 +109,7 @@
   }
   
   .chat-bubble-user {
-    @apply bg-primary text-primary-foreground ml-auto;
+    @apply bg-gradient-to-br from-primary to-blue-500 text-primary-foreground ml-auto;
   }
   
   .chat-bubble-ai {
@@ -148,7 +148,7 @@
     background: linear-gradient(
       to bottom right,
       rgba(255, 255, 255, 0) 0%,
-      rgba(255, 255, 255, 0.1) 100%
+      rgba(255, 255, 255, 0.2) 100%
     );
     transform: rotate(30deg);
     transition: transform 0.5s;
@@ -157,4 +157,36 @@
   .btn-shine:hover::after {
     transform: rotate(30deg) translateY(-50px);
   }
+
+  /* Gen Z additions */
+  .bg-size-200 {
+    background-size: 200% 100%;
+  }
+  
+  .bg-pos-0 {
+    background-position: 0% 0%;
+  }
+  
+  .bg-pos-100 {
+    background-position: 100% 0%;
+  }
+  
+  .hover\:bg-pos-100:hover {
+    background-position: 100% 0%;
+  }
 }
+
+@layer utilities {
+  .animate-dots-1 {
+    animation: dots 1.4s infinite 0.2s;
+  }
+  
+  .animate-dots-2 {
+    animation: dots 1.4s infinite 0.4s;
+  }
+  
+  .animate-dots-3 {
+    animation: dots 1.4s infinite 0.6s;
+  }
+}
+

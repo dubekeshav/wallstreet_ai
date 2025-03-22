@@ -150,7 +150,11 @@ export default {
 			transitionDuration: {
 				'2000': '2000ms',
 				'3000': '3000ms',
-			}
+			},
+			blur: {
+				'3xl': '64px',
+				'4xl': '96px',
+			},
 		}
 	},
 	plugins: [require("tailwindcss-animate")],

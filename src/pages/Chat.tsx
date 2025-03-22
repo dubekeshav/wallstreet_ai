@@ -1,17 +1,27 @@
 
-import React, { useRef, useEffect } from 'react';
-import Navbar from '@/components/Navbar';
+import React, { useRef, useEffect, useState } from 'react';
 import ChatMessage from '@/components/ChatMessage';
 import ChatInput from '@/components/ChatInput';
 import LoadingDots from '@/components/LoadingDots';
+import ChatSidebar from '@/components/ChatSidebar';
+import SidebarBackdrop from '@/components/SidebarBackdrop';
 import { useChat } from '@/context/ChatContext';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, RefreshCw } from 'lucide-react';
+import { Menu, Plus, RefreshCw } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const Chat: React.FC = () => {
   const { messages, isLoading, clearMessages } = useChat();
   const chatContainerRef = useRef<HTMLDivElement>(null);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  
+  const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
+  const closeSidebar = () => setSidebarOpen(false);
+  
+  const startNewChat = () => {
+    clearMessages();
+    closeSidebar();
+  };
   
   useEffect(() => {
     if (chatContainerRef.current) {
@@ -21,16 +31,36 @@ const Chat: React.FC = () => {
   
   return (
     <div className="flex flex-col min-h-screen bg-background">
-      <Navbar />
-      
-      <main className="flex-1 flex flex-col pt-24 pb-4 px-4 sm:px-6 md:px-8 max-w-5xl mx-auto w-full">
-        <div className="flex items-center justify-between mb-4">
-          <Link to="/">
-            <Button variant="ghost" size="sm" className="text-muted-foreground group">
-              <ArrowLeft className="w-4 h-4 mr-1 transition-transform group-hover:-translate-x-1" />
-              Back
+      {/* Header */}
+      <header className="fixed top-0 left-0 right-0 z-10 bg-background/90 backdrop-blur-sm border-b">
+        <div className="flex items-center justify-between px-4 h-14">
+          <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={toggleSidebar}
+              className="md:flex"
+              aria-label="Toggle sidebar"
+            >
+              <Menu className="h-5 w-5" />
             </Button>
-          </Link>
+            
+            {!sidebarOpen && (
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={startNewChat}
+                className="ml-1 group"
+                aria-label="New chat"
+              >
+                <Plus className="h-5 w-5 group-hover:rotate-90 transition-transform duration-200" />
+              </Button>
+            )}
+            
+            <Link to="/" className="text-lg font-medium ml-2 hidden sm:block">
+              FinanceIQ
+            </Link>
+          </div>
           
           <Button 
             variant="outline" 
@@ -42,7 +72,18 @@ const Chat: React.FC = () => {
             New Chat
           </Button>
         </div>
-        
+      </header>
+      
+      {/* Sidebar */}
+      <ChatSidebar 
+        isOpen={sidebarOpen} 
+        onClose={closeSidebar} 
+        onNewChat={startNewChat}
+      />
+      <SidebarBackdrop isOpen={sidebarOpen} onClick={closeSidebar} />
+      
+      {/* Main Content */}
+      <main className="flex-1 flex flex-col pt-20 pb-4 px-4 sm:px-6 md:px-8 max-w-5xl mx-auto w-full">
         <div className="flex-1 flex flex-col glass-morphism rounded-lg shadow-lg">
           <div 
             ref={chatContainerRef}
