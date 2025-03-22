@@ -9,11 +9,14 @@ import { useChat } from '@/context/ChatContext';
 import { Button } from '@/components/ui/button';
 import { Menu, Plus, RefreshCw } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import TagModal from '@/components/TagModal';
 
 const Chat: React.FC = () => {
   const { messages, isLoading, clearMessages } = useChat();
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [isTagModalOpen, setIsTagModalOpen] = useState(false);
+  const [currentChatId, setCurrentChatId] = useState<string | null>(null);
   
   const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
   const closeSidebar = () => setSidebarOpen(false);
@@ -21,6 +24,11 @@ const Chat: React.FC = () => {
   const startNewChat = () => {
     clearMessages();
     closeSidebar();
+  };
+
+  const openTagModal = (chatId: string) => {
+    setCurrentChatId(chatId);
+    setIsTagModalOpen(true);
   };
   
   useEffect(() => {
@@ -58,7 +66,7 @@ const Chat: React.FC = () => {
             )}
             
             <Link to="/" className="text-lg font-medium ml-2 hidden sm:block">
-              FinanceIQ
+              WallStreet AI
             </Link>
           </div>
           
@@ -79,6 +87,7 @@ const Chat: React.FC = () => {
         isOpen={sidebarOpen} 
         onClose={closeSidebar} 
         onNewChat={startNewChat}
+        onTagChat={openTagModal}
       />
       <SidebarBackdrop isOpen={sidebarOpen} onClick={closeSidebar} />
       
@@ -109,6 +118,13 @@ const Chat: React.FC = () => {
           <ChatInput />
         </div>
       </main>
+
+      {/* Tag Modal */}
+      <TagModal 
+        isOpen={isTagModalOpen} 
+        onClose={() => setIsTagModalOpen(false)}
+        chatId={currentChatId}
+      />
     </div>
   );
 };

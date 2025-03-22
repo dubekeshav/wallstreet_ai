@@ -1,7 +1,7 @@
 
 import React, { useState, KeyboardEvent, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Send, Mic, Image, Paperclip } from 'lucide-react';
+import { Send, Mic, Image, Paperclip, MicOff } from 'lucide-react';
 import { useChat } from '@/context/ChatContext';
 import { toast } from 'sonner';
 
@@ -32,7 +32,9 @@ const mockApiResponse = (query: string): Promise<string> => {
 
 const ChatInput: React.FC = () => {
   const [input, setInput] = useState('');
+  const [isRecording, setIsRecording] = useState(false);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const { addMessage, isLoading, setIsLoading } = useChat();
   
   useEffect(() => {
@@ -85,6 +87,45 @@ const ChatInput: React.FC = () => {
     textarea.style.height = `${Math.min(textarea.scrollHeight, 150)}px`;
   };
   
+  const handleFileClick = () => {
+    fileInputRef.current?.click();
+  };
+  
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+    
+    // Here you would process the files, perhaps upload them to a server
+    // For now, we'll just show a toast notification
+    const fileNames = Array.from(files).map(file => file.name).join(', ');
+    
+    toast.success(`File${files.length > 1 ? 's' : ''} selected: ${fileNames}`);
+    
+    // Reset the file input so the same file can be selected again
+    e.target.value = '';
+  };
+  
+  const toggleRecording = () => {
+    if (isRecording) {
+      // Stop recording
+      setIsRecording(false);
+      toast.info("Voice recording stopped");
+      // In a real app, you would process the recording here
+    } else {
+      // Check for microphone permission
+      navigator.mediaDevices.getUserMedia({ audio: true })
+        .then(() => {
+          setIsRecording(true);
+          toast.info("Voice recording started... speak now");
+          // In a real app, you would start recording here
+        })
+        .catch((err) => {
+          console.error('Error accessing microphone:', err);
+          toast.error('Unable to access microphone. Please check permissions.');
+        });
+    }
+  };
+  
   return (
     <div className="border-t bg-background/95 backdrop-blur-sm p-4 rounded-b-lg">
       <div className="relative flex flex-col items-end gap-2 max-w-3xl mx-auto">
@@ -93,23 +134,31 @@ const ChatInput: React.FC = () => {
             variant="ghost" 
             size="icon" 
             className="flex-shrink-0 text-muted-foreground hover:text-foreground" 
-            disabled={isLoading}
-            onClick={() => toast.info("Attachment functionality coming soon!")}
+            disabled={isLoading || isRecording}
+            onClick={handleFileClick}
           >
             <Paperclip className="h-5 w-5" />
           </Button>
           
+          <input
+            type="file"
+            ref={fileInputRef}
+            className="hidden"
+            multiple
+            onChange={handleFileChange}
+          />
+          
           <textarea
             ref={inputRef}
             className="flex-1 resize-none bg-transparent border-0 focus:ring-0 focus:outline-none px-2 py-2 h-10 max-h-[150px]"
-            placeholder="Ask about stocks, funds, investments..."
+            placeholder={isRecording ? "Listening..." : "Ask about stocks, funds, investments..."}
             value={input}
             onChange={(e) => {
               setInput(e.target.value);
               autoResize(e);
             }}
             onKeyDown={handleKeyDown}
-            disabled={isLoading}
+            disabled={isLoading || isRecording}
             rows={1}
           />
           
@@ -119,24 +168,24 @@ const ChatInput: React.FC = () => {
               size="icon" 
               className="flex-shrink-0 text-muted-foreground hover:text-foreground" 
               disabled={isLoading}
-              onClick={() => toast.info("Image upload functionality coming soon!")}
+              onClick={handleFileClick}
             >
               <Image className="h-5 w-5" />
             </Button>
             
             <Button 
-              variant="ghost" 
+              variant={isRecording ? "destructive" : "ghost"}
               size="icon" 
-              className="flex-shrink-0 text-muted-foreground hover:text-foreground" 
+              className={`flex-shrink-0 ${isRecording ? 'text-white' : 'text-muted-foreground hover:text-foreground'}`}
               disabled={isLoading}
-              onClick={() => toast.info("Voice input functionality coming soon!")}
+              onClick={toggleRecording}
             >
-              <Mic className="h-5 w-5" />
+              {isRecording ? <MicOff className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
             </Button>
             
             <Button 
               onClick={handleSubmit} 
-              disabled={!input.trim() || isLoading}
+              disabled={(!input.trim() && !isRecording) || isLoading}
               className="flex-shrink-0 group transition-transform hover:scale-105 active:scale-95 disabled:scale-100"
             >
               <Send className="w-4 h-4 transition-transform group-hover:translate-x-1 group-hover:-translate-y-1" />
@@ -145,7 +194,7 @@ const ChatInput: React.FC = () => {
         </div>
         
         <div className="text-xs text-muted-foreground px-2">
-          FinanceIQ may display inaccurate information, including about people, finance, or investments.
+          WallStreet AI may display inaccurate information, including about people, finance, or investments.
         </div>
       </div>
     </div>

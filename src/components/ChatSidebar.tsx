@@ -6,9 +6,9 @@ import {
   Plus, 
   ChevronRight, 
   Pin, 
-  FolderPlus, 
+  Tag, 
   Trash2, 
-  MoreVertical 
+  MoreHorizontal 
 } from 'lucide-react';
 import Logo from '@/components/Logo';
 import { useChat } from '@/context/ChatContext';
@@ -21,6 +21,10 @@ interface ChatHistoryItem {
   preview: string;
   timestamp: Date;
   isPinned?: boolean;
+  tag?: {
+    name: string;
+    color: string;
+  };
 }
 
 // Mock data for chat history
@@ -30,7 +34,11 @@ const mockChatHistory: ChatHistoryItem[] = [
     title: 'Stock Analysis',
     preview: 'What are the best performing tech stocks this quarter?',
     timestamp: new Date(2023, 6, 12),
-    isPinned: true
+    isPinned: true,
+    tag: {
+      name: 'Stocks',
+      color: '#4f46e5'
+    }
   },
   {
     id: '2',
@@ -42,7 +50,11 @@ const mockChatHistory: ChatHistoryItem[] = [
     id: '3',
     title: 'ETFs vs Mutual Funds',
     preview: 'What are the main differences between ETFs and mutual funds?',
-    timestamp: new Date(2023, 6, 10)
+    timestamp: new Date(2023, 6, 10),
+    tag: {
+      name: 'Learning',
+      color: '#06b6d4'
+    }
   },
   {
     id: '4',
@@ -62,9 +74,10 @@ interface ChatSidebarProps {
   isOpen: boolean;
   onClose: () => void;
   onNewChat: () => void;
+  onTagChat: (chatId: string) => void;
 }
 
-const ChatSidebar: React.FC<ChatSidebarProps> = ({ isOpen, onClose, onNewChat }) => {
+const ChatSidebar: React.FC<ChatSidebarProps> = ({ isOpen, onClose, onNewChat, onTagChat }) => {
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
   const [visibleChats, setVisibleChats] = useState(3);
   const [pinnedChats, setPinnedChats] = useState<string[]>(
@@ -93,13 +106,8 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ isOpen, onClose, onNewChat })
     setActiveDropdown(null);
   };
   
-  const handleSaveToList = (chatId: string) => {
-    toast({
-      title: "Chat saved to list",
-      description: "This functionality would save the chat to a collection.",
-      duration: 2000,
-    });
-    
+  const handleAddTag = (chatId: string) => {
+    onTagChat(chatId);
     setActiveDropdown(null);
   };
   
@@ -137,7 +145,7 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ isOpen, onClose, onNewChat })
       <div className="flex flex-col h-full">
         <div className="p-4 border-b">
           <div className="flex items-center justify-between">
-            <Logo className="text-primary" />
+            <h1 className="text-xl font-semibold text-primary">WallStreet AI</h1>
             <Button
               variant="ghost"
               size="sm"
@@ -173,14 +181,23 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ isOpen, onClose, onNewChat })
                     onClick={onClose}
                     className={`flex flex-col text-left rounded-md px-3 py-2 hover:bg-accent hover:text-accent-foreground transition-colors ${
                       pinnedChats.includes(chat.id) ? 'bg-accent/50' : ''
-                    }`}
+                    } ${chat.tag ? `border-l-4 border-[${chat.tag.color}]` : ''}`}
+                    style={chat.tag ? { borderLeftColor: chat.tag.color } : {}}
                   >
                     <div className="flex items-center justify-between">
-                      <span className="font-medium truncate">
+                      <span className="font-medium truncate flex items-center gap-1">
                         {pinnedChats.includes(chat.id) && (
-                          <Pin className="inline h-3 w-3 mr-1 text-primary" />
+                          <Pin className="inline h-3 w-3 text-primary" />
                         )}
                         {chat.title}
+                        {chat.tag && (
+                          <span 
+                            className="inline-block px-1.5 py-0.5 text-xs rounded-full text-white ml-1"
+                            style={{ backgroundColor: chat.tag.color }}
+                          >
+                            {chat.tag.name}
+                          </span>
+                        )}
                       </span>
                       <Button
                         variant="ghost"
@@ -191,7 +208,7 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ isOpen, onClose, onNewChat })
                           toggleDropdown(chat.id);
                         }}
                       >
-                        <MoreVertical className="h-4 w-4" />
+                        <MoreHorizontal className="h-4 w-4" />
                       </Button>
                     </div>
                     <span className="text-xs text-muted-foreground truncate">{chat.preview}</span>
@@ -214,11 +231,11 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ isOpen, onClose, onNewChat })
                         className="flex w-full items-center px-3 py-2 text-sm hover:bg-accent hover:text-accent-foreground"
                         onClick={(e) => {
                           e.stopPropagation();
-                          handleSaveToList(chat.id);
+                          handleAddTag(chat.id);
                         }}
                       >
-                        <FolderPlus className="mr-2 h-4 w-4" />
-                        Save to a list
+                        <Tag className="mr-2 h-4 w-4" />
+                        Add Tag
                       </button>
                       <button 
                         className="flex w-full items-center px-3 py-2 text-sm text-destructive hover:bg-destructive/10"
@@ -250,7 +267,7 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ isOpen, onClose, onNewChat })
         
         <div className="p-3 border-t">
           <div className="text-xs text-muted-foreground">
-            <p>© {new Date().getFullYear()} FinanceIQ</p>
+            <p>© {new Date().getFullYear()} WallStreet AI</p>
           </div>
         </div>
       </div>

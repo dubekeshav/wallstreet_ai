@@ -26,7 +26,7 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
-      content: "Hello! I'm your financial assistant. Ask me anything about stocks, mutual funds, ETFs, or other investments.",
+      content: "Hello! I'm your WallStreet AI assistant. Ask me anything about stocks, mutual funds, ETFs, or other investments.",
       sender: 'assistant',
       timestamp: new Date(),
     },
@@ -48,7 +48,7 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setMessages([
       {
         id: '1',
-        content: "Hello! I'm your financial assistant. Ask me anything about stocks, mutual funds, ETFs, or other investments.",
+        content: "Hello! I'm your WallStreet AI assistant. Ask me anything about stocks, mutual funds, ETFs, or other investments.",
         sender: 'assistant',
         timestamp: new Date(),
       },
