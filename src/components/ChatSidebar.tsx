@@ -141,18 +141,18 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ isOpen, onClose, onNewChat, o
   
   return (
     <div 
-      className={`fixed inset-y-0 left-0 z-30 w-72 bg-card shadow-lg transform transition-transform duration-300 ease-in-out ${
+      className={`fixed inset-y-0 left-0 z-30 w-72 bg-sidebar shadow-lg transform transition-transform duration-300 ease-in-out ${
         isOpen ? 'translate-x-0' : '-translate-x-full'
       }`}
     >
       <div className="flex flex-col h-full">
-        <div className="p-4 border-b">
+        <div className="p-4 border-b border-sidebar-border">
           <div className="flex items-center justify-between">
             <Button
               variant="ghost"
               size="sm"
               onClick={onClose}
-              className="text-muted-foreground"
+              className="text-sidebar-foreground"
             >
               <ChevronRight className="h-5 w-5" />
             </Button>
@@ -165,7 +165,7 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ isOpen, onClose, onNewChat, o
               onNewChat();
               clearMessages();
             }} 
-            className="w-full justify-start group"
+            className="w-full justify-start group bg-sidebar-primary text-sidebar-primary-foreground hover:bg-sidebar-primary/90"
           >
             <Plus className="mr-2 h-4 w-4 group-hover:rotate-90 transition-transform duration-200" />
             New Chat
@@ -174,21 +174,21 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ isOpen, onClose, onNewChat, o
         
         <div className="flex-1 overflow-y-auto">
           <div className="px-3 py-2">
-            <h3 className="text-sm font-medium text-muted-foreground mb-2">Recent Chats</h3>
-            <ul className="space-y-1">
+            <h3 className="text-sm font-medium text-sidebar-foreground mb-3">Recent Chats</h3>
+            <ul className="space-y-3">
               {sortedChats.slice(0, visibleChats).map((chat) => (
                 <li key={chat.id} className="relative group">
                   <Link 
                     to="/chat" 
-                    className={`flex flex-col text-left rounded-md px-3 py-2 hover:bg-accent hover:text-accent-foreground transition-colors ${
-                      pinnedChats.includes(chat.id) ? 'bg-accent/50' : ''
-                    } ${chat.tag ? `border-l-4 border-[${chat.tag.color}]` : ''}`}
-                    style={chat.tag ? { borderLeftColor: chat.tag.color } : {}}
+                    className={`flex flex-col text-left rounded-md px-3 py-2.5 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors text-sm ${
+                      pinnedChats.includes(chat.id) ? 'bg-sidebar-accent/50' : ''
+                    }`}
+                    style={chat.tag ? { backgroundColor: `${chat.tag.color}25` } : {}}
                   >
                     <div className="flex items-center justify-between">
                       <span className="font-medium truncate flex items-center gap-1 max-w-[85%]">
                         {pinnedChats.includes(chat.id) && (
-                          <Pin className="inline h-3 w-3 text-primary" />
+                          <Pin className="inline h-3 w-3 text-sidebar-primary" />
                         )}
                         {chat.preview.length > 35 ? chat.preview.substring(0, 35) + '...' : chat.preview}
                         {chat.tag && (
@@ -244,7 +244,7 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ isOpen, onClose, onNewChat, o
             {visibleChats < mockChatHistory.length && (
               <button 
                 onClick={showAllChats}
-                className="text-sm text-primary hover:underline mt-2 flex items-center"
+                className="text-sm text-sidebar-primary hover:underline mt-4 flex items-center"
               >
                 See more
                 <ChevronRight className="h-3 w-3 ml-0.5" />
@@ -253,8 +253,8 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ isOpen, onClose, onNewChat, o
           </div>
         </div>
         
-        <div className="p-3 border-t">
-          <div className="text-xs text-muted-foreground">
+        <div className="p-3 border-t border-sidebar-border">
+          <div className="text-xs text-sidebar-foreground/70">
             <p>© {new Date().getFullYear()} WallStreet AI</p>
           </div>
         </div>

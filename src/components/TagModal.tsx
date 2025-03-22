@@ -20,23 +20,23 @@ interface TagModalProps {
 
 // Mock existing tags
 const existingTags = [
-  { name: 'Stocks', color: '#4f46e5' },
-  { name: 'Learning', color: '#06b6d4' },
-  { name: 'Crypto', color: '#7c3aed' },
-  { name: 'Retirement', color: '#10b981' },
-  { name: 'Research', color: '#f59e0b' }
+  { name: 'Stocks', color: '#FF8C00' }, // Orange
+  { name: 'Learning', color: '#4682B4' }, // Steel Blue
+  { name: 'Crypto', color: '#7B68EE' }, // Medium Slate Blue
+  { name: 'Retirement', color: '#2E8B57' }, // Sea Green
+  { name: 'Research', color: '#CD853F' }  // Peru
 ];
 
-// Predefined colors for new tags
+// Predefined colors for new tags (warm/earthy tones for cream/beige theme)
 const colorOptions = [
-  '#ef4444', // red
-  '#f59e0b', // amber
-  '#10b981', // emerald
-  '#06b6d4', // cyan
-  '#3b82f6', // blue
-  '#7c3aed', // violet
-  '#ec4899', // pink
-  '#6b7280', // gray
+  '#FF8C00', // Dark Orange
+  '#CD853F', // Peru
+  '#8B4513', // Saddle Brown
+  '#2E8B57', // Sea Green
+  '#4682B4', // Steel Blue
+  '#7B68EE', // Medium Slate Blue
+  '#800080', // Purple
+  '#D2691E', // Chocolate
 ];
 
 const TagModal: React.FC<TagModalProps> = ({ isOpen, onClose, chatId }) => {
@@ -101,7 +101,7 @@ const TagModal: React.FC<TagModalProps> = ({ isOpen, onClose, chatId }) => {
   
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md bg-card">
         <DialogHeader>
           <DialogTitle className="flex items-center">
             <Tag className="mr-2 h-5 w-5" />
@@ -189,7 +189,10 @@ const TagModal: React.FC<TagModalProps> = ({ isOpen, onClose, chatId }) => {
           <Button variant="outline" onClick={onClose}>
             Cancel
           </Button>
-          <Button onClick={handleSave}>
+          <Button 
+            onClick={handleSave}
+            className="bg-primary hover:bg-primary/90"
+          >
             Save
           </Button>
         </DialogFooter>

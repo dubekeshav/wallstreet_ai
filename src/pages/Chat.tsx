@@ -64,6 +64,13 @@ const Chat: React.FC = () => {
               </Button>
             )}
           </div>
+          
+          {/* Wallstreet AI Logo */}
+          <div className="absolute left-1/2 transform -translate-x-1/2 text-xl font-bold">
+            <span className="bg-gradient-to-r from-primary via-amber-500 to-yellow-500 bg-clip-text text-transparent">
+              WallStreet AI
+            </span>
+          </div>
         </div>
       </header>
       
@@ -78,7 +85,7 @@ const Chat: React.FC = () => {
       
       {/* Main Content */}
       <main className="flex-1 flex flex-col pt-20 pb-4 px-4 sm:px-6 md:px-8 max-w-5xl mx-auto w-full">
-        <div className="flex-1 flex flex-col glass-morphism rounded-lg shadow-lg">
+        <div className="flex-1 flex flex-col glass-morphism rounded-2xl shadow-lg overflow-hidden">
           <div 
             ref={chatContainerRef}
             className="flex-1 overflow-y-auto p-4 md:p-6 scroll-shadow"

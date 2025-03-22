@@ -20,8 +20,8 @@ export default {
 		},
 		extend: {
 			fontFamily: {
-				sans: ['ClashDisplay', 'Inter', 'sans-serif'],
-				display: ['ClashDisplay', 'sans-serif'],
+				sans: ['"Happy Monkey"', 'sans-serif'],
+				display: ['"Happy Monkey"', 'ClashDisplay', 'sans-serif'],
 			},
 			colors: {
 				border: 'hsl(var(--border))',

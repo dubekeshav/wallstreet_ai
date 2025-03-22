@@ -1,5 +1,5 @@
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Happy+Monkey&display=swap');
 @font-face {
   font-family: 'ClashDisplay';
   src: url('https://cdn.jsdelivr.net/gh/FoundersGrotesk/ClashDisplay/Fonts/WEB/fonts/ClashDisplay-Variable.woff2') format('woff2');
@@ -13,44 +13,44 @@
 
 @layer base {
   :root {
-    --background: 222 47% 11%;
-    --foreground: 210 40% 98%;
+    --background: 36 33% 97%;
+    --foreground: 30 9% 22%;
 
-    --card: 222 47% 11%;
-    --card-foreground: 210 40% 98%;
+    --card: 36 33% 97%;
+    --card-foreground: 30 9% 22%;
 
-    --popover: 222 47% 11%;
-    --popover-foreground: 210 40% 98%;
+    --popover: 36 33% 97%;
+    --popover-foreground: 30 9% 22%;
 
-    --primary: 217.2 91.2% 59.8%;
-    --primary-foreground: 222.2 47.4% 11.2%;
+    --primary: 30 84% 60%;
+    --primary-foreground: 36 33% 97%;
 
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
+    --secondary: 35 33% 90%;
+    --secondary-foreground: 30 9% 22%;
 
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
+    --muted: 35 33% 90%;
+    --muted-foreground: 30 6% 45%;
 
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
+    --accent: 35 33% 90%;
+    --accent-foreground: 30 9% 22%;
 
     --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive-foreground: 36 33% 97%;
 
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 224.3 76.3% 48%;
+    --border: 35 13% 80%;
+    --input: 35 13% 80%;
+    --ring: 30 84% 50%;
 
     --radius: 0.75rem;
 
-    --sidebar-background: 222 47% 11%;
-    --sidebar-foreground: 210 40% 98%;
-    --sidebar-primary: 217.2 91.2% 59.8%;
-    --sidebar-primary-foreground: 222.2 47.4% 11.2%;
-    --sidebar-accent: 217.2 32.6% 17.5%;
-    --sidebar-accent-foreground: 210 40% 98%;
-    --sidebar-border: 217.2 32.6% 17.5%;
-    --sidebar-ring: 224.3 76.3% 48%;
+    --sidebar-background: 35 38% 92%;
+    --sidebar-foreground: 30 9% 25%;
+    --sidebar-primary: 30 84% 60%;
+    --sidebar-primary-foreground: 36 33% 97%;
+    --sidebar-accent: 35 26% 85%;
+    --sidebar-accent-foreground: 30 9% 25%;
+    --sidebar-border: 35 13% 80%;
+    --sidebar-ring: 30 84% 50%;
   }
 }
 
@@ -70,7 +70,7 @@
 
 @layer components {
   .glass-morphism {
-    @apply bg-black/20 backdrop-blur-lg border border-white/10 shadow-lg;
+    @apply bg-white/60 backdrop-blur-lg border border-white/40 shadow-lg;
   }
   
   .chat-bubble {
@@ -79,7 +79,7 @@
   }
   
   .chat-bubble-user {
-    @apply bg-gradient-to-br from-primary to-blue-500 text-primary-foreground ml-auto;
+    @apply bg-gradient-to-br from-primary to-amber-500 text-primary-foreground ml-auto;
   }
   
   .chat-bubble-ai {
