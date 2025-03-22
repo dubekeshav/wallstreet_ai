@@ -20,7 +20,7 @@ export default {
 		},
 		extend: {
 			fontFamily: {
-				sans: ['Inter', 'sans-serif'],
+				sans: ['ClashDisplay', 'Inter', 'sans-serif'],
 				display: ['ClashDisplay', 'sans-serif'],
 			},
 			colors: {

@@ -1,7 +1,7 @@
 
 import React, { useState, KeyboardEvent, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Send, Mic, Image, Paperclip, MicOff } from 'lucide-react';
+import { Send, Mic, Paperclip, MicOff } from 'lucide-react';
 import { useChat } from '@/context/ChatContext';
 import { toast } from 'sonner';
 
@@ -136,6 +136,7 @@ const ChatInput: React.FC = () => {
             className="flex-shrink-0 text-muted-foreground hover:text-foreground" 
             disabled={isLoading || isRecording}
             onClick={handleFileClick}
+            aria-label="Attach file"
           >
             <Paperclip className="h-5 w-5" />
           </Button>
@@ -164,21 +165,12 @@ const ChatInput: React.FC = () => {
           
           <div className="flex items-center gap-1">
             <Button 
-              variant="ghost" 
-              size="icon" 
-              className="flex-shrink-0 text-muted-foreground hover:text-foreground" 
-              disabled={isLoading}
-              onClick={handleFileClick}
-            >
-              <Image className="h-5 w-5" />
-            </Button>
-            
-            <Button 
               variant={isRecording ? "destructive" : "ghost"}
               size="icon" 
               className={`flex-shrink-0 ${isRecording ? 'text-white' : 'text-muted-foreground hover:text-foreground'}`}
               disabled={isLoading}
               onClick={toggleRecording}
+              aria-label={isRecording ? "Stop recording" : "Start voice recording"}
             >
               {isRecording ? <MicOff className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
             </Button>
@@ -187,6 +179,7 @@ const ChatInput: React.FC = () => {
               onClick={handleSubmit} 
               disabled={(!input.trim() && !isRecording) || isLoading}
               className="flex-shrink-0 group transition-transform hover:scale-105 active:scale-95 disabled:scale-100"
+              aria-label="Send message"
             >
               <Send className="w-4 h-4 transition-transform group-hover:translate-x-1 group-hover:-translate-y-1" />
             </Button>

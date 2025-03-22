@@ -7,8 +7,7 @@ import ChatSidebar from '@/components/ChatSidebar';
 import SidebarBackdrop from '@/components/SidebarBackdrop';
 import { useChat } from '@/context/ChatContext';
 import { Button } from '@/components/ui/button';
-import { Menu, Plus, RefreshCw } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Menu, Plus } from 'lucide-react';
 import TagModal from '@/components/TagModal';
 
 const Chat: React.FC = () => {
@@ -64,21 +63,7 @@ const Chat: React.FC = () => {
                 <Plus className="h-5 w-5 group-hover:rotate-90 transition-transform duration-200" />
               </Button>
             )}
-            
-            <Link to="/" className="text-lg font-medium ml-2 hidden sm:block">
-              WallStreet AI
-            </Link>
           </div>
-          
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={clearMessages}
-            className="text-muted-foreground"
-          >
-            <RefreshCw className="w-4 h-4 mr-1" />
-            New Chat
-          </Button>
         </div>
       </header>
       

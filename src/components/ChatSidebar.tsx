@@ -10,7 +10,6 @@ import {
   Trash2, 
   MoreHorizontal 
 } from 'lucide-react';
-import Logo from '@/components/Logo';
 import { useChat } from '@/context/ChatContext';
 import { useToast } from '@/components/ui/use-toast';
 
@@ -87,11 +86,13 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ isOpen, onClose, onNewChat, o
   const { toast } = useToast();
   const { clearMessages } = useChat();
   
-  const toggleDropdown = (chatId: string) => {
+  const toggleDropdown = (chatId: string, e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent opening the chat
     setActiveDropdown(activeDropdown === chatId ? null : chatId);
   };
   
-  const handlePinChat = (chatId: string) => {
+  const handlePinChat = (chatId: string, e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent opening the chat
     setPinnedChats(prev => 
       prev.includes(chatId) 
         ? prev.filter(id => id !== chatId) 
@@ -106,12 +107,14 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ isOpen, onClose, onNewChat, o
     setActiveDropdown(null);
   };
   
-  const handleAddTag = (chatId: string) => {
+  const handleAddTag = (chatId: string, e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent opening the chat
     onTagChat(chatId);
     setActiveDropdown(null);
   };
   
-  const handleDeleteChat = (chatId: string) => {
+  const handleDeleteChat = (chatId: string, e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent opening the chat
     toast({
       title: "Chat deleted",
       description: "The chat has been removed from your history.",
@@ -145,7 +148,6 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ isOpen, onClose, onNewChat, o
       <div className="flex flex-col h-full">
         <div className="p-4 border-b">
           <div className="flex items-center justify-between">
-            <h1 className="text-xl font-semibold text-primary">WallStreet AI</h1>
             <Button
               variant="ghost"
               size="sm"
@@ -178,18 +180,17 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ isOpen, onClose, onNewChat, o
                 <li key={chat.id} className="relative group">
                   <Link 
                     to="/chat" 
-                    onClick={onClose}
                     className={`flex flex-col text-left rounded-md px-3 py-2 hover:bg-accent hover:text-accent-foreground transition-colors ${
                       pinnedChats.includes(chat.id) ? 'bg-accent/50' : ''
                     } ${chat.tag ? `border-l-4 border-[${chat.tag.color}]` : ''}`}
                     style={chat.tag ? { borderLeftColor: chat.tag.color } : {}}
                   >
                     <div className="flex items-center justify-between">
-                      <span className="font-medium truncate flex items-center gap-1">
+                      <span className="font-medium truncate flex items-center gap-1 max-w-[85%]">
                         {pinnedChats.includes(chat.id) && (
                           <Pin className="inline h-3 w-3 text-primary" />
                         )}
-                        {chat.title}
+                        {chat.preview.length > 35 ? chat.preview.substring(0, 35) + '...' : chat.preview}
                         {chat.tag && (
                           <span 
                             className="inline-block px-1.5 py-0.5 text-xs rounded-full text-white ml-1"
@@ -203,15 +204,11 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ isOpen, onClose, onNewChat, o
                         variant="ghost"
                         size="icon"
                         className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          toggleDropdown(chat.id);
-                        }}
+                        onClick={(e) => toggleDropdown(chat.id, e)}
                       >
                         <MoreHorizontal className="h-4 w-4" />
                       </Button>
                     </div>
-                    <span className="text-xs text-muted-foreground truncate">{chat.preview}</span>
                   </Link>
                   
                   {/* Dropdown menu */}
@@ -219,30 +216,21 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ isOpen, onClose, onNewChat, o
                     <div className="absolute right-2 top-10 z-10 bg-popover shadow-md rounded-md py-1 animate-in slide-in-from-top-5 fade-in-20 w-48">
                       <button 
                         className="flex w-full items-center px-3 py-2 text-sm hover:bg-accent hover:text-accent-foreground"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handlePinChat(chat.id);
-                        }}
+                        onClick={(e) => handlePinChat(chat.id, e)}
                       >
                         <Pin className="mr-2 h-4 w-4" />
                         {pinnedChats.includes(chat.id) ? 'Unpin chat' : 'Pin chat'}
                       </button>
                       <button 
                         className="flex w-full items-center px-3 py-2 text-sm hover:bg-accent hover:text-accent-foreground"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleAddTag(chat.id);
-                        }}
+                        onClick={(e) => handleAddTag(chat.id, e)}
                       >
                         <Tag className="mr-2 h-4 w-4" />
                         Add Tag
                       </button>
                       <button 
                         className="flex w-full items-center px-3 py-2 text-sm text-destructive hover:bg-destructive/10"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleDeleteChat(chat.id);
-                        }}
+                        onClick={(e) => handleDeleteChat(chat.id, e)}
                       >
                         <Trash2 className="mr-2 h-4 w-4" />
                         Delete chat
