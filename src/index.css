@@ -144,6 +144,40 @@
   .hover\:bg-pos-100:hover {
     background-position: 100% 0%;
   }
+  
+  /* Enhanced 3D effect for buttons */
+  .button-3d {
+    @apply transform transition-all duration-200 hover:-translate-y-1 hover:shadow-lg active:translate-y-0 active:shadow-md;
+  }
+  
+  /* Gradient text effect */
+  .gradient-text {
+    @apply bg-gradient-to-r from-primary via-amber-500 to-yellow-500 bg-clip-text text-transparent;
+  }
+  
+  /* Glass cards with hover effect */
+  .glass-card {
+    @apply glass-morphism transition-all duration-300 hover:bg-white/70 hover:shadow-xl;
+  }
+  
+  /* Animated border */
+  .animated-border {
+    @apply relative overflow-hidden rounded-lg;
+  }
+  
+  .animated-border::after {
+    content: '';
+    @apply absolute inset-0 rounded-lg;
+    background: linear-gradient(90deg, var(--tw-gradient-stops));
+    --tw-gradient-from: theme('colors.primary.DEFAULT');
+    --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to, rgb(255 255 255 / 0));
+    --tw-gradient-to: theme('colors.amber.500');
+    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    mask-composite: exclude;
+    -webkit-mask-composite: source-out;
+    mask-composite: subtract;
+    padding: 2px;
+  }
 }
 
 @layer utilities {
@@ -157,5 +191,32 @@
   
   .animate-dots-3 {
     animation: dots 1.4s infinite 0.6s;
+  }
+  
+  /* Custom animations */
+  @keyframes float {
+    0%, 100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-10px);
+    }
+  }
+  
+  .animate-float {
+    animation: float 5s ease-in-out infinite;
+  }
+  
+  @keyframes pulse-glow {
+    0%, 100% {
+      box-shadow: 0 0 0 0 rgba(var(--primary), 0.4);
+    }
+    50% {
+      box-shadow: 0 0 20px 5px rgba(var(--primary), 0.2);
+    }
+  }
+  
+  .animate-pulse-glow {
+    animation: pulse-glow 2s ease-in-out infinite;
   }
 }

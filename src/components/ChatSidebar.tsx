@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { 
   Plus, 
@@ -89,7 +89,7 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ isOpen, onClose, onNewChat, o
   );
   
   const { toast } = useToast();
-  const { clearMessages } = useChat();
+  const { clearMessages, loadChatHistory } = useChat();
   const navigate = useNavigate();
   
   const toggleDropdown = (chatId: string, e: React.MouseEvent) => {
@@ -137,19 +137,13 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ isOpen, onClose, onNewChat, o
   const handleChatClick = (chatId: string, e: React.MouseEvent) => {
     e.preventDefault(); // Prevent default Link behavior
     
-    // Here we would load the specific chat data
-    // For demo purposes, we'll just navigate to the chat page
-    // In a real app, you'd load the chat by ID from your API
+    // Find the chat with this ID
+    const chat = mockChatHistory.find(c => c.id === chatId);
     
-    // No need to close sidebar - it stays open as requested
-    
-    // This is where you would load the chat data
-    console.log(`Loading chat ${chatId}`);
-    
-    // Optional: if we're already on the chat page, we don't need to navigate
-    // This prevents unnecessary page reloads
-    if (window.location.pathname !== '/chat') {
-      navigate('/chat');
+    if (chat) {
+      console.log(`Loading chat ${chatId}: ${chat.preview}`);
+      // Load this chat's history without closing the sidebar
+      loadChatHistory(chatId);
     }
   };
   
@@ -181,7 +175,7 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ isOpen, onClose, onNewChat, o
               variant="ghost"
               size="sm"
               onClick={onClose}
-              className="text-sidebar-foreground"
+              className="text-sidebar-foreground transition-transform duration-300"
             >
               <Menu className="h-5 w-5" />
             </Button>
@@ -207,27 +201,26 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ isOpen, onClose, onNewChat, o
             <ul className="space-y-4"> {/* Increased spacing between chat items */}
               {sortedChats.slice(0, visibleChats).map((chat) => (
                 <li key={chat.id} className="relative group">
-                  <a 
-                    href="#"
-                    onClick={(e) => handleChatClick(chat.id, e)}
+                  <div 
                     className={`flex flex-col text-left rounded-md px-3 py-3 transition-colors text-sm ${
                       chat.tag 
-                        ? `hover:bg-opacity-80` 
-                        : 'hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
+                        ? `hover:bg-opacity-80 cursor-pointer` 
+                        : 'hover:bg-sidebar-accent hover:text-sidebar-accent-foreground cursor-pointer'
                     }`}
                     style={chat.tag ? { 
                       backgroundColor: `${chat.tag.color}25`,
                     } : {}}
+                    onClick={(e) => handleChatClick(chat.id, e)}
                   >
                     <div className="flex items-center justify-between">
-                      <span className="font-medium truncate flex items-center gap-1 max-w-[82%] text-sm">
+                      <span className="font-medium truncate flex items-center gap-1 max-w-[82%] text-xs">
                         {pinnedChats.includes(chat.id) && (
                           <Pin className="inline h-3 w-3 text-sidebar-primary" />
                         )}
                         {chat.preview.length > 30 ? chat.preview.substring(0, 30) + '...' : chat.preview}
                         {chat.tag && (
                           <span 
-                            className="inline-block px-1.5 py-0.5 text-xs rounded-full text-white ml-1"
+                            className="inline-block px-1.5 py-0.5 text-[10px] rounded-full text-white ml-1"
                             style={{ backgroundColor: chat.tag.color }}
                           >
                             {chat.tag.name}
@@ -243,7 +236,7 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ isOpen, onClose, onNewChat, o
                         <MoreHorizontal className="h-4 w-4" />
                       </Button>
                     </div>
-                  </a>
+                  </div>
                   
                   {/* Dropdown menu */}
                   {activeDropdown === chat.id && (

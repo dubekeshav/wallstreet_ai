@@ -30,7 +30,7 @@ const FinancialModels3D: React.FC = () => {
     const numberOfParticles = Math.min(Math.floor(width / 8), 250); // More particles for richer animation
     
     // Shapes to represent financial objects
-    const shapes = ['circle', 'dollar', 'chart', 'coin'];
+    const shapes = ['circle', 'dollar', 'chart', 'coin', 'stockBar', 'bitcoin'];
     
     class Particle {
       x: number;
@@ -55,7 +55,7 @@ const FinancialModels3D: React.FC = () => {
         this.speedX = Math.random() * 1.2 - 0.6;
         this.speedY = Math.random() * 1.2 - 0.6;
         this.mass = this.size; // Mass proportional to size for physics calculations
-        this.interactive = Math.random() > 0.6; // More particles are interactive
+        this.interactive = Math.random() > 0.5; // More particles are interactive
         this.rotation = Math.random() * Math.PI * 2;
         this.rotationSpeed = (Math.random() - 0.5) * 0.02;
         
@@ -156,6 +156,12 @@ const FinancialModels3D: React.FC = () => {
           case 'coin':
             this.drawCoin(ctx);
             break;
+          case 'stockBar':
+            this.drawStockBar(ctx);
+            break;
+          case 'bitcoin':
+            this.drawBitcoin(ctx);
+            break;
           case 'circle':
           default:
             ctx.fillStyle = this.color;
@@ -234,6 +240,60 @@ const FinancialModels3D: React.FC = () => {
         ctx.beginPath();
         ctx.arc(0, 0, size/2, 0, Math.PI * 2);
         ctx.fill();
+      }
+
+      drawStockBar(ctx: CanvasRenderingContext2D) {
+        const size = this.size * 2;
+        
+        // Draw bar chart
+        const barCount = 5;
+        const barWidth = size / barCount * 0.7;
+        const spacing = size / barCount * 0.3;
+        
+        for (let i = 0; i < barCount; i++) {
+          const barHeight = (Math.sin((i / barCount) * Math.PI) + 0.5) * size;
+          const x = -size/2 + i * (barWidth + spacing);
+          
+          // Bar with gradient
+          const gradient = ctx.createLinearGradient(x, 0, x + barWidth, 0);
+          gradient.addColorStop(0, this.color);
+          gradient.addColorStop(1, 'rgba(255, 255, 255, 0.6)');
+          
+          ctx.fillStyle = gradient;
+          ctx.fillRect(x, -barHeight/2, barWidth, barHeight);
+        }
+      }
+      
+      drawBitcoin(ctx: CanvasRenderingContext2D) {
+        const size = this.size * 1.8;
+        
+        // Draw bitcoin circle
+        ctx.fillStyle = this.color;
+        ctx.beginPath();
+        ctx.arc(0, 0, size, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Draw bitcoin symbol
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.8)';
+        ctx.lineWidth = size/6;
+        
+        // Vertical line
+        ctx.beginPath();
+        ctx.moveTo(0, -size*0.5);
+        ctx.lineTo(0, size*0.5);
+        ctx.stroke();
+        
+        // B shape
+        ctx.beginPath();
+        ctx.moveTo(0, -size*0.3);
+        ctx.lineTo(size*0.4, -size*0.3);
+        ctx.arc(size*0.3, -size*0.1, size*0.2, -Math.PI/2, Math.PI/2, false);
+        ctx.lineTo(0, size*0.1);
+        ctx.moveTo(0, size*0.1);
+        ctx.lineTo(size*0.4, size*0.1);
+        ctx.arc(size*0.3, size*0.3, size*0.2, -Math.PI/2, Math.PI/2, false);
+        ctx.lineTo(0, size*0.5);
+        ctx.stroke();
       }
     }
     

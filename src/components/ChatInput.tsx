@@ -33,14 +33,23 @@ const mockApiResponse = (query: string): Promise<string> => {
 const ChatInput: React.FC = () => {
   const [input, setInput] = useState('');
   const [isRecording, setIsRecording] = useState(false);
+  const [recordingTime, setRecordingTime] = useState(0);
+  const [isUploading, setIsUploading] = useState(false);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const recordingTimerRef = useRef<NodeJS.Timeout | null>(null);
   const { addMessage, isLoading, setIsLoading } = useChat();
   
   useEffect(() => {
     if (inputRef.current) {
       inputRef.current.focus();
     }
+    
+    return () => {
+      if (recordingTimerRef.current) {
+        clearInterval(recordingTimerRef.current);
+      }
+    };
   }, []);
   
   const handleSubmit = async () => {
@@ -66,7 +75,6 @@ const ChatInput: React.FC = () => {
       
       // Add assistant response
       addMessage(response, 'assistant');
-      console.log()
     } catch (error) {
       console.error('Error getting response:', error);
       toast.error('Failed to get a response. Please try again.');
@@ -96,11 +104,21 @@ const ChatInput: React.FC = () => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
     
-    // Here you would process the files, perhaps upload them to a server
-    // For now, we'll just show a toast notification
-    const fileNames = Array.from(files).map(file => file.name).join(', ');
+    setIsUploading(true);
     
-    toast.success(`File${files.length > 1 ? 's' : ''} selected: ${fileNames}`);
+    // Simulate file upload
+    setTimeout(() => {
+      const fileNames = Array.from(files).map(file => file.name).join(', ');
+      toast.success(`File${files.length > 1 ? 's' : ''} uploaded: ${fileNames}`);
+      setIsUploading(false);
+      
+      // For demo, add a message about the uploaded files
+      if (files.length === 1 && files[0].type.startsWith('image/')) {
+        addMessage(`I've uploaded an image: ${files[0].name}. Can you analyze this chart for me?`, 'user');
+      } else {
+        addMessage(`I've uploaded: ${fileNames}. Can you analyze this data?`, 'user');
+      }
+    }, 1500);
     
     // Reset the file input so the same file can be selected again
     e.target.value = '';
@@ -110,21 +128,51 @@ const ChatInput: React.FC = () => {
     if (isRecording) {
       // Stop recording
       setIsRecording(false);
-      toast.info("Voice recording stopped");
+      toast.info(`Voice recording stopped (${recordingTime}s)`);
+      setRecordingTime(0);
+      if (recordingTimerRef.current) {
+        clearInterval(recordingTimerRef.current);
+        recordingTimerRef.current = null;
+      }
+      
       // In a real app, you would process the recording here
+      // Simulate a transcription for demo purposes
+      if (recordingTime > 1) {
+        setTimeout(() => {
+          const demoTranscriptions = [
+            "What stocks should I invest in if I'm interested in renewable energy?",
+            "How do I start investing with a small budget of $1000?",
+            "Can you explain what a P/E ratio is and why it matters?",
+            "What's the difference between a bull and bear market?"
+          ];
+          const randomTranscription = demoTranscriptions[Math.floor(Math.random() * demoTranscriptions.length)];
+          setInput(randomTranscription);
+          toast.success("Voice transcribed successfully");
+        }, 1000);
+      }
     } else {
       // Check for microphone permission
       navigator.mediaDevices.getUserMedia({ audio: true })
         .then(() => {
           setIsRecording(true);
           toast.info("Voice recording started... speak now");
-          // In a real app, you would start recording here
+          
+          // Start timer for recording duration
+          recordingTimerRef.current = setInterval(() => {
+            setRecordingTime(prev => prev + 1);
+          }, 1000);
         })
         .catch((err) => {
           console.error('Error accessing microphone:', err);
           toast.error('Unable to access microphone. Please check permissions.');
         });
     }
+  };
+  
+  const formatRecordingTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
   };
   
   return (
@@ -134,8 +182,8 @@ const ChatInput: React.FC = () => {
           <Button 
             variant="ghost" 
             size="icon" 
-            className="flex-shrink-0 text-muted-foreground hover:text-foreground" 
-            disabled={isLoading || isRecording}
+            className={`flex-shrink-0 ${isUploading ? 'text-primary animate-pulse' : 'text-muted-foreground hover:text-foreground'}`}
+            disabled={isLoading || isRecording || isUploading}
             onClick={handleFileClick}
             aria-label="Attach file"
           >
@@ -148,19 +196,20 @@ const ChatInput: React.FC = () => {
             className="hidden"
             multiple
             onChange={handleFileChange}
+            accept="image/*,application/pdf,text/csv,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
           />
           
           <textarea
             ref={inputRef}
             className="flex-1 resize-none bg-transparent border-0 focus:ring-0 focus:outline-none px-2 py-2 h-10 max-h-[150px]"
-            placeholder={isRecording ? "Listening..." : "Ask about stocks, funds, investments..."}
+            placeholder={isRecording ? `Recording... ${formatRecordingTime(recordingTime)}` : "Ask about stocks, funds, investments..."}
             value={input}
             onChange={(e) => {
               setInput(e.target.value);
               autoResize(e);
             }}
             onKeyDown={handleKeyDown}
-            disabled={isLoading || isRecording}
+            disabled={isLoading || isRecording || isUploading}
             rows={1}
           />
           
@@ -168,8 +217,8 @@ const ChatInput: React.FC = () => {
             <Button 
               variant={isRecording ? "destructive" : "ghost"}
               size="icon" 
-              className={`flex-shrink-0 ${isRecording ? 'text-white' : 'text-muted-foreground hover:text-foreground'}`}
-              disabled={isLoading}
+              className={`flex-shrink-0 ${isRecording ? 'text-white animate-pulse' : 'text-muted-foreground hover:text-foreground'}`}
+              disabled={isLoading || isUploading}
               onClick={toggleRecording}
               aria-label={isRecording ? "Stop recording" : "Start voice recording"}
             >
@@ -178,7 +227,7 @@ const ChatInput: React.FC = () => {
             
             <Button 
               onClick={handleSubmit} 
-              disabled={(!input.trim() && !isRecording) || isLoading}
+              disabled={(!input.trim() && !isRecording) || isLoading || isUploading}
               className="flex-shrink-0 group transition-transform hover:scale-105 active:scale-95 disabled:scale-100"
               aria-label="Send message"
             >

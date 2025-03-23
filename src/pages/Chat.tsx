@@ -8,7 +8,7 @@ import ChatSidebar from '@/components/ChatSidebar';
 import SidebarBackdrop from '@/components/SidebarBackdrop';
 import { useChat } from '@/context/ChatContext';
 import { Button } from '@/components/ui/button';
-import { Menu, X, Plus } from 'lucide-react';
+import { Menu, X, Plus, ChevronLeft } from 'lucide-react';
 import TagModal from '@/components/TagModal';
 
 const Chat: React.FC = () => {
@@ -75,6 +75,12 @@ const Chat: React.FC = () => {
               WallStreet AI
             </span>
           </Link>
+          
+          {/* Back to home */}
+          <Link to="/" className="text-muted-foreground hover:text-foreground flex items-center text-sm">
+            <ChevronLeft className="h-4 w-4 mr-1" />
+            <span className="hidden sm:inline">Home</span>
+          </Link>
         </div>
       </header>
       
@@ -90,26 +96,64 @@ const Chat: React.FC = () => {
       {/* Main Content */}
       <main className="flex-1 flex flex-col pt-20 pb-4 px-4 sm:px-6 md:px-8 max-w-5xl mx-auto w-full">
         <div className="flex-1 flex flex-col glass-morphism rounded-2xl shadow-lg overflow-hidden">
-          <div 
-            ref={chatContainerRef}
-            className="flex-1 overflow-y-auto p-4 md:p-6 scroll-shadow"
-          >
-            {messages.map((message, index) => (
-              <ChatMessage 
-                key={message.id} 
-                message={message} 
-                isLatest={index === messages.length - 1}
-              />
-            ))}
-            
-            {isLoading && (
-              <div className="flex mb-4">
-                <div className="chat-bubble chat-bubble-ai rounded-tl-none opacity-90">
-                  <LoadingDots />
-                </div>
+          {messages.length === 0 ? (
+            <div className="flex-1 flex flex-col items-center justify-center p-6 text-center">
+              <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-6">
+                <BarChart3 className="h-8 w-8 text-primary" />
               </div>
-            )}
-          </div>
+              <h2 className="text-2xl font-bold mb-2">Welcome to WallStreet AI</h2>
+              <p className="text-muted-foreground max-w-md mb-8">
+                Ask me anything about investing, markets, financial concepts, or get personalized advice.
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-2xl w-full">
+                {[
+                  "What stocks should I invest in?",
+                  "Explain ETFs vs. mutual funds",
+                  "How do I start investing with $500?",
+                  "What's happening with tech stocks?"
+                ].map((suggestion, index) => (
+                  <button
+                    key={index}
+                    className="bg-accent hover:bg-accent/80 text-accent-foreground px-4 py-3 rounded-lg text-sm text-left transition-colors hover:scale-105 transform duration-200"
+                    onClick={() => {
+                      addMessage(suggestion, 'user');
+                      // Simulate a response
+                      setIsLoading(true);
+                      setTimeout(() => {
+                        mockApiResponse(suggestion).then(response => {
+                          addMessage(response, 'assistant');
+                          setIsLoading(false);
+                        });
+                      }, 1000);
+                    }}
+                  >
+                    {suggestion}
+                  </button>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div 
+              ref={chatContainerRef}
+              className="flex-1 overflow-y-auto p-4 md:p-6 scroll-shadow"
+            >
+              {messages.map((message, index) => (
+                <ChatMessage 
+                  key={message.id} 
+                  message={message} 
+                  isLatest={index === messages.length - 1}
+                />
+              ))}
+              
+              {isLoading && (
+                <div className="flex mb-4">
+                  <div className="chat-bubble chat-bubble-ai rounded-tl-none opacity-90">
+                    <LoadingDots />
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
           
           <ChatInput />
         </div>
@@ -124,5 +168,24 @@ const Chat: React.FC = () => {
     </div>
   );
 };
+
+const BarChart3 = ({ className }: { className?: string }) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="24"
+    height="24"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className={className}
+  >
+    <rect width="4" height="5" x="3" y="14" rx="1" />
+    <rect width="4" height="10" x="10" y="9" rx="1" />
+    <rect width="4" height="15" x="17" y="4" rx="1" />
+  </svg>
+);
 
 export default Chat;

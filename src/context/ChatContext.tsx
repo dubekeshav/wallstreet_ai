@@ -1,79 +1,111 @@
 
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { useState, useContext, ReactNode, createContext } from 'react';
 
-// Define message types
+export type MessageSender = 'user' | 'assistant';
+
 export interface Message {
   id: string;
   content: string;
-  sender: 'user' | 'assistant';
+  sender: MessageSender;
   timestamp: Date;
 }
 
-// Define context type
 interface ChatContextType {
   messages: Message[];
-  addMessage: (content: string, sender: 'user' | 'assistant') => void;
   isLoading: boolean;
-  setIsLoading: (loading: boolean) => void;
+  addMessage: (content: string, sender: MessageSender) => void;
   clearMessages: () => void;
+  setIsLoading: (isLoading: boolean) => void;
+  loadChatHistory: (chatId: string) => void;
 }
 
-// Create context
 const ChatContext = createContext<ChatContextType | undefined>(undefined);
 
-// Create provider
-export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: '1',
-      content: "Hello! I'm your WallStreet AI assistant. Ask me anything about stocks, mutual funds, ETFs, or other investments.",
-      sender: 'assistant',
-      timestamp: new Date(),
-    },
-  ]);
+export const useChat = (): ChatContextType => {
+  const context = useContext(ChatContext);
+  if (!context) {
+    throw new Error('useChat must be used within a ChatProvider');
+  }
+  return context;
+};
+
+interface ChatProviderProps {
+  children: ReactNode;
+}
+
+export const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
+  const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
-  const addMessage = (content: string, sender: 'user' | 'assistant') => {
+  // Sample chat histories for demo
+  const chatHistories: Record<string, Message[]> = {
+    '1': [
+      {
+        id: '1-1',
+        content: 'What are the best performing tech stocks this quarter?',
+        sender: 'user',
+        timestamp: new Date(2023, 6, 12, 10, 0)
+      },
+      {
+        id: '1-2',
+        content: 'Based on recent market data, the top performing tech stocks this quarter include NVIDIA (NVDA), which has seen significant growth due to AI demand, Apple (AAPL) with strong iPhone sales, and Microsoft (MSFT) with cloud services growth. AMD has also performed well with new chip releases. Remember that past performance doesn\'t guarantee future results, and it\'s always wise to diversify your investments.',
+        sender: 'assistant',
+        timestamp: new Date(2023, 6, 12, 10, 1)
+      }
+    ],
+    '2': [
+      {
+        id: '2-1',
+        content: 'How should I diversify my investment portfolio?',
+        sender: 'user',
+        timestamp: new Date(2023, 6, 11, 14, 30)
+      },
+      {
+        id: '2-2',
+        content: 'A well-diversified portfolio typically includes a mix of asset classes such as stocks, bonds, and cash equivalents. Within stocks, consider diversifying across different sectors (tech, healthcare, consumer goods) and geographies (US, international markets). Also include different market caps (large, mid, small). For bonds, vary between government, municipal, and corporate bonds with different maturities. Consider adding alternative investments like REITs or commodities depending on your risk tolerance and investment timeline.',
+        sender: 'assistant',
+        timestamp: new Date(2023, 6, 11, 14, 32)
+      }
+    ],
+    // Add more sample histories as needed
+  };
+
+  const addMessage = (content: string, sender: MessageSender) => {
     const newMessage: Message = {
-      id: Date.now().toString(),
+      id: `msg-${Date.now()}`,
       content,
       sender,
       timestamp: new Date(),
     };
     
-    setMessages(prev => [...prev, newMessage]);
+    setMessages((prev) => [...prev, newMessage]);
   };
 
   const clearMessages = () => {
-    setMessages([
-      {
-        id: '1',
-        content: "Hello! I'm your WallStreet AI assistant. Ask me anything about stocks, mutual funds, ETFs, or other investments.",
-        sender: 'assistant',
-        timestamp: new Date(),
-      },
-    ]);
+    setMessages([]);
   };
 
-  // Create the value object
-  const value = {
-    messages,
-    addMessage,
-    isLoading,
-    setIsLoading,
-    clearMessages,
+  const loadChatHistory = (chatId: string) => {
+    const history = chatHistories[chatId];
+    if (history) {
+      setMessages(history);
+    } else {
+      console.log(`No history found for chat ID: ${chatId}`);
+    }
   };
 
-  return <ChatContext.Provider value={value}>{children}</ChatContext.Provider>;
-};
-
-// Create hook for using the context
-export const useChat = (): ChatContextType => {
-  const context = useContext(ChatContext);
-  
-  if (context === undefined) {
-    throw new Error('useChat must be used within a ChatProvider');
-  }
-  
-  return context;
+  return (
+    <ChatContext.Provider
+      value={{
+        messages,
+        isLoading,
+        addMessage,
+        clearMessages,
+        setIsLoading,
+        loadChatHistory
+      }}
+    >
+      {children}
+    </ChatContext.Provider>
+  );
 };
