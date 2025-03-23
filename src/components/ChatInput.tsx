@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Send } from 'lucide-react';
 import ChatInputField from '@/components/chat/ChatInputField';
@@ -16,12 +16,6 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, disabled }) => {
   const [isRecording, setIsRecording] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const inputRef = useRef<HTMLTextAreaElement>(null);
-  
-  useEffect(() => {
-    if (inputRef.current) {
-      inputRef.current.focus();
-    }
-  }, []);
   
   const handleSubmit = async () => {
     if (!input.trim() || disabled) return;

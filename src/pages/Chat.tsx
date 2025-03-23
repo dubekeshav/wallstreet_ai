@@ -90,7 +90,7 @@ const Chat = () => {
               <Menu className={`w-5 h-5 transition-transform duration-300 ${isSidebarOpen ? 'rotate-90' : ''}`} />
             </button>
             
-            <Logo className="cursor-pointer" />
+            <Logo onClick={() => navigate('/')} className="cursor-pointer" />
           </div>
           
           <div className="flex items-center">
