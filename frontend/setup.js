@@ -2,35 +2,45 @@
 const fs = require('fs');
 const path = require('path');
 
-// Create a symbolic link to the frontend package.json in the root directory
+// Copy the frontend package.json to the root directory and to /dev-server if needed
 try {
   const rootDir = path.resolve(__dirname, '..');
+  const devServerDir = '/dev-server';
   const sourcePath = path.resolve(__dirname, 'package.json');
-  const targetPath = path.resolve(rootDir, 'package.json');
+  const targetPathRoot = path.resolve(rootDir, 'package.json');
+  const targetPathDevServer = path.join(devServerDir, 'package.json');
   
-  // Check if the symlink already exists
-  if (!fs.existsSync(targetPath)) {
-    // Create the symlink
-    fs.symlinkSync(sourcePath, targetPath, 'file');
-    console.log('Symbolic link created successfully!');
+  // Copy to root directory if it doesn't exist
+  if (!fs.existsSync(targetPathRoot)) {
+    fs.copyFileSync(sourcePath, targetPathRoot);
+    console.log('package.json copied to root directory successfully!');
   } else {
     console.log('package.json already exists in the root directory.');
   }
+  
+  // Try to copy to /dev-server if it exists
+  try {
+    if (fs.existsSync(devServerDir) && !fs.existsSync(targetPathDevServer)) {
+      fs.copyFileSync(sourcePath, targetPathDevServer);
+      console.log('package.json copied to /dev-server directory successfully!');
+    }
+  } catch (devServerError) {
+    console.error('Note: Could not copy to /dev-server, may not exist in this environment:', devServerError.message);
+  }
 } catch (error) {
-  console.error('Error creating symbolic link:', error);
+  console.error('Error copying package.json:', error.message);
 }
 
-// Also create an index.html in the root if it doesn't exist
+// Also create an index.html in the root and /dev-server if needed
 try {
-  const rootIndexPath = path.resolve(__dirname, '..', 'index.html');
+  const rootDir = path.resolve(__dirname, '..');
+  const devServerDir = '/dev-server';
+  const rootIndexPath = path.resolve(rootDir, 'index.html');
   const frontendIndexPath = path.resolve(__dirname, 'index.html');
+  const devServerIndexPath = path.join(devServerDir, 'index.html');
   
-  if (!fs.existsSync(rootIndexPath) && fs.existsSync(frontendIndexPath)) {
-    fs.copyFileSync(frontendIndexPath, rootIndexPath);
-    console.log('index.html copied to root directory.');
-  } else if (!fs.existsSync(frontendIndexPath)) {
-    // Create a basic index.html in the frontend directory
-    const htmlContent = `<!DOCTYPE html>
+  // Create or update index.html in frontend directory
+  const htmlContent = `<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -44,24 +54,49 @@ try {
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>`;
-    
-    fs.writeFileSync(frontendIndexPath, htmlContent);
-    fs.copyFileSync(frontendIndexPath, rootIndexPath);
-    console.log('Created index.html in both frontend and root directories.');
+  
+  fs.writeFileSync(frontendIndexPath, htmlContent);
+  
+  // Copy to root directory
+  fs.copyFileSync(frontendIndexPath, rootIndexPath);
+  console.log('index.html created/updated in frontend and root directories.');
+  
+  // Try to copy to /dev-server if it exists
+  try {
+    if (fs.existsSync(devServerDir)) {
+      fs.copyFileSync(frontendIndexPath, devServerIndexPath);
+      console.log('index.html copied to /dev-server directory.');
+    }
+  } catch (devServerError) {
+    console.error('Note: Could not copy index.html to /dev-server:', devServerError.message);
   }
 } catch (error) {
-  console.error('Error handling index.html:', error);
+  console.error('Error handling index.html:', error.message);
 }
 
-// Make sure vite.config.ts is also in the root
+// Make sure vite.config.ts is also in the root and /dev-server
 try {
-  const rootViteConfigPath = path.resolve(__dirname, '..', 'vite.config.ts');
+  const rootDir = path.resolve(__dirname, '..');
+  const devServerDir = '/dev-server';
+  const rootViteConfigPath = path.resolve(rootDir, 'vite.config.ts');
   const frontendViteConfigPath = path.resolve(__dirname, 'vite.config.ts');
+  const devServerViteConfigPath = path.join(devServerDir, 'vite.config.ts');
   
-  if (!fs.existsSync(rootViteConfigPath) && fs.existsSync(frontendViteConfigPath)) {
+  // Copy to root directory
+  if (fs.existsSync(frontendViteConfigPath)) {
     fs.copyFileSync(frontendViteConfigPath, rootViteConfigPath);
     console.log('vite.config.ts copied to root directory.');
+    
+    // Try to copy to /dev-server if it exists
+    try {
+      if (fs.existsSync(devServerDir)) {
+        fs.copyFileSync(frontendViteConfigPath, devServerViteConfigPath);
+        console.log('vite.config.ts copied to /dev-server directory.');
+      }
+    } catch (devServerError) {
+      console.error('Note: Could not copy vite.config.ts to /dev-server:', devServerError.message);
+    }
   }
 } catch (error) {
-  console.error('Error copying vite.config.ts:', error);
+  console.error('Error handling vite.config.ts:', error.message);
 }
