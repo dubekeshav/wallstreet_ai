@@ -18,13 +18,13 @@ interface TagModalProps {
   chatId: string | null;
 }
 
-// Mock existing tags
+// Mock existing tags with warm tones suitable for cream/beige theme
 const existingTags = [
-  { name: 'Stocks', color: '#FF8C00' }, // Orange
-  { name: 'Learning', color: '#4682B4' }, // Steel Blue
-  { name: 'Crypto', color: '#7B68EE' }, // Medium Slate Blue
+  { name: 'Stocks', color: '#FF8C00' },     // Dark Orange
+  { name: 'Learning', color: '#4682B4' },   // Steel Blue
+  { name: 'Crypto', color: '#7B68EE' },     // Medium Slate Blue
   { name: 'Retirement', color: '#2E8B57' }, // Sea Green
-  { name: 'Research', color: '#CD853F' }  // Peru
+  { name: 'Research', color: '#CD853F' }    // Peru
 ];
 
 // Predefined colors for new tags (warm/earthy tones for cream/beige theme)
