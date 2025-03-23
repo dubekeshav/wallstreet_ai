@@ -51,16 +51,6 @@ const Index: React.FC = () => {
     <div className="min-h-screen bg-background overflow-x-hidden relative">
       <FinancialModels3D />
       
-      {/* Top navigation */}
-      <header className="absolute top-0 left-0 right-0 z-10 py-4 px-6">
-        <div className="max-w-7xl mx-auto flex justify-between items-center">
-          <div className="text-2xl font-bold">
-            <span className="bg-gradient-to-r from-primary via-amber-500 to-yellow-500 bg-clip-text text-transparent">
-              WallStreet AI
-            </span>
-          </div>
-        </div>
-      </header>
       
       {/* Hero Section */}
       <section className="relative min-h-screen flex flex-col items-center justify-center px-4 text-center">

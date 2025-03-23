@@ -183,7 +183,7 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ isOpen, onClose, onNewChat, o
               onClick={onClose}
               className="text-sidebar-foreground"
             >
-              <X className="h-5 w-5" />
+              <Menu className="h-5 w-5" />
             </Button>
           </div>
         </div>
