@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { 
   Plus, 
@@ -37,7 +37,7 @@ const mockChatHistory: ChatHistoryItem[] = [
     isPinned: true,
     tag: {
       name: 'Stocks',
-      color: '#4f46e5'
+      color: '#FF8C00'
     }
   },
   {
@@ -53,7 +53,7 @@ const mockChatHistory: ChatHistoryItem[] = [
     timestamp: new Date(2023, 6, 10),
     tag: {
       name: 'Learning',
-      color: '#06b6d4'
+      color: '#4682B4'
     }
   },
   {
@@ -66,7 +66,11 @@ const mockChatHistory: ChatHistoryItem[] = [
     id: '5',
     title: 'Retirement Planning',
     preview: 'What are the best strategies for retirement planning in my 30s?',
-    timestamp: new Date(2023, 6, 8)
+    timestamp: new Date(2023, 6, 8),
+    tag: {
+      name: 'Retirement',
+      color: '#2E8B57'
+    }
   }
 ];
 
@@ -86,14 +90,17 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ isOpen, onClose, onNewChat, o
   
   const { toast } = useToast();
   const { clearMessages } = useChat();
+  const navigate = useNavigate();
   
   const toggleDropdown = (chatId: string, e: React.MouseEvent) => {
-    // e.stopPropagation(); // Prevent opening the chat
+    e.stopPropagation(); // Prevent opening the chat
+    e.preventDefault(); // Prevent any navigation
     setActiveDropdown(activeDropdown === chatId ? null : chatId);
   };
   
   const handlePinChat = (chatId: string, e: React.MouseEvent) => {
-    // e.stopPropagation(); // Prevent opening the chat
+    e.stopPropagation(); // Prevent opening the chat
+    e.preventDefault(); // Prevent any navigation
     setPinnedChats(prev => 
       prev.includes(chatId) 
         ? prev.filter(id => id !== chatId) 
@@ -109,13 +116,15 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ isOpen, onClose, onNewChat, o
   };
   
   const handleAddTag = (chatId: string, e: React.MouseEvent) => {
-    // e.stopPropagation(); // Prevent opening the chat
+    e.stopPropagation(); // Prevent opening the chat
+    e.preventDefault(); // Prevent any navigation
     onTagChat(chatId);
     setActiveDropdown(null);
   };
   
   const handleDeleteChat = (chatId: string, e: React.MouseEvent) => {
-    // e.stopPropagation(); // Prevent opening the chat
+    e.stopPropagation(); // Prevent opening the chat
+    e.preventDefault(); // Prevent any navigation
     toast({
       title: "Chat deleted",
       description: "The chat has been removed from your history.",
@@ -123,6 +132,25 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ isOpen, onClose, onNewChat, o
     });
     
     setActiveDropdown(null);
+  };
+  
+  const handleChatClick = (chatId: string, e: React.MouseEvent) => {
+    e.preventDefault(); // Prevent default Link behavior
+    
+    // Here we would load the specific chat data
+    // For demo purposes, we'll just navigate to the chat page
+    // In a real app, you'd load the chat by ID from your API
+    
+    // No need to close sidebar - it stays open as requested
+    
+    // This is where you would load the chat data
+    console.log(`Loading chat ${chatId}`);
+    
+    // Optional: if we're already on the chat page, we don't need to navigate
+    // This prevents unnecessary page reloads
+    if (window.location.pathname !== '/chat') {
+      navigate('/chat');
+    }
   };
   
   const showAllChats = () => {
@@ -155,7 +183,7 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ isOpen, onClose, onNewChat, o
               onClick={onClose}
               className="text-sidebar-foreground"
             >
-              <Menu className="h-5 w-5" />
+              <X className="h-5 w-5" />
             </Button>
           </div>
         </div>
@@ -176,22 +204,27 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ isOpen, onClose, onNewChat, o
         <div className="flex-1 overflow-y-auto">
           <div className="px-3 py-2">
             <h3 className="text-sm font-medium text-sidebar-foreground mb-3">Recent Chats</h3>
-            <ul className="space-y-3">
+            <ul className="space-y-4"> {/* Increased spacing between chat items */}
               {sortedChats.slice(0, visibleChats).map((chat) => (
                 <li key={chat.id} className="relative group">
-                  <Link 
-                    to="/chat" 
-                    className={`flex flex-col text-left rounded-md px-3 py-2.5 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors text-sm ${
-                      pinnedChats.includes(chat.id) ? 'bg-sidebar-accent/50' : ''
+                  <a 
+                    href="#"
+                    onClick={(e) => handleChatClick(chat.id, e)}
+                    className={`flex flex-col text-left rounded-md px-3 py-3 transition-colors text-sm ${
+                      chat.tag 
+                        ? `hover:bg-opacity-80` 
+                        : 'hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
                     }`}
-                    style={chat.tag ? { backgroundColor: `${chat.tag.color}25` } : {}}
+                    style={chat.tag ? { 
+                      backgroundColor: `${chat.tag.color}25`,
+                    } : {}}
                   >
                     <div className="flex items-center justify-between">
-                      <span className="font-medium truncate flex items-center gap-1 max-w-[85%]">
+                      <span className="font-medium truncate flex items-center gap-1 max-w-[82%] text-sm">
                         {pinnedChats.includes(chat.id) && (
                           <Pin className="inline h-3 w-3 text-sidebar-primary" />
                         )}
-                        {chat.preview.length > 35 ? chat.preview.substring(0, 35) + '...' : chat.preview}
+                        {chat.preview.length > 30 ? chat.preview.substring(0, 30) + '...' : chat.preview}
                         {chat.tag && (
                           <span 
                             className="inline-block px-1.5 py-0.5 text-xs rounded-full text-white ml-1"
@@ -210,7 +243,7 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ isOpen, onClose, onNewChat, o
                         <MoreHorizontal className="h-4 w-4" />
                       </Button>
                     </div>
-                  </Link>
+                  </a>
                   
                   {/* Dropdown menu */}
                   {activeDropdown === chat.id && (

@@ -1,5 +1,6 @@
 
 import React, { useRef, useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import ChatMessage from '@/components/ChatMessage';
 import ChatInput from '@/components/ChatInput';
 import LoadingDots from '@/components/LoadingDots';
@@ -7,7 +8,7 @@ import ChatSidebar from '@/components/ChatSidebar';
 import SidebarBackdrop from '@/components/SidebarBackdrop';
 import { useChat } from '@/context/ChatContext';
 import { Button } from '@/components/ui/button';
-import { Menu, Plus } from 'lucide-react';
+import { Menu, X, Plus } from 'lucide-react';
 import TagModal from '@/components/TagModal';
 
 const Chat: React.FC = () => {
@@ -45,10 +46,14 @@ const Chat: React.FC = () => {
               variant="ghost"
               size="icon"
               onClick={toggleSidebar}
-              className="md:flex"
+              className="md:flex transition-transform duration-300"
               aria-label="Toggle sidebar"
             >
-              <Menu className="h-5 w-5" />
+              {sidebarOpen ? (
+                <X className="h-5 w-5 animate-in fade-in-50 zoom-in-95 duration-300" />
+              ) : (
+                <Menu className="h-5 w-5 animate-in fade-in-50 zoom-in-95 duration-300" />
+              )}
             </Button>
             
             {!sidebarOpen && (
@@ -65,11 +70,11 @@ const Chat: React.FC = () => {
           </div>
           
           {/* Wallstreet AI Logo */}
-          <div className="absolute left-1/2 transform -translate-x-1/2 text-xl font-bold">
-            <a href="\" className="bg-gradient-to-r from-primary via-amber-500 to-yellow-500 bg-clip-text text-transparent">
+          <Link to="/" className="absolute left-1/2 transform -translate-x-1/2 text-xl font-bold">
+            <span className="bg-gradient-to-r from-primary via-amber-500 to-yellow-500 bg-clip-text text-transparent">
               WallStreet AI
-            </a>
-          </div>
+            </span>
+          </Link>
         </div>
       </header>
       

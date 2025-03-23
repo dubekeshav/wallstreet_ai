@@ -2,8 +2,8 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import ThreeDBackground from '@/components/ThreeDBackground';
-import { ArrowRight, BarChart3, BookOpen, PiggyBank, Lightbulb } from 'lucide-react';
+import FinancialModels3D from '@/components/FinancialModels3D';
+import { ArrowRight, BarChart3, BookOpen, PiggyBank, Lightbulb, DollarSign, LineChart, TrendingUp } from 'lucide-react';
 
 const Index: React.FC = () => {
   // Example queries - for visually appealing display only
@@ -40,9 +40,27 @@ const Index: React.FC = () => {
     }
   ];
   
+  // Added financial statistics for visual appeal
+  const financialStats = [
+    { icon: <DollarSign />, label: "Assets Analyzed", value: "5,000+" },
+    { icon: <LineChart />, label: "Market Predictions", value: "95% Accuracy" },
+    { icon: <TrendingUp />, label: "Portfolio Growth", value: "32% Average" }
+  ];
+  
   return (
     <div className="min-h-screen bg-background overflow-x-hidden relative">
-      <ThreeDBackground />
+      <FinancialModels3D />
+      
+      {/* Top navigation */}
+      <header className="absolute top-0 left-0 right-0 z-10 py-4 px-6">
+        <div className="max-w-7xl mx-auto flex justify-between items-center">
+          <div className="text-2xl font-bold">
+            <span className="bg-gradient-to-r from-primary via-amber-500 to-yellow-500 bg-clip-text text-transparent">
+              WallStreet AI
+            </span>
+          </div>
+        </div>
+      </header>
       
       {/* Hero Section */}
       <section className="relative min-h-screen flex flex-col items-center justify-center px-4 text-center">
@@ -52,10 +70,25 @@ const Index: React.FC = () => {
           </h1>
           
           <p className="text-xl text-foreground mb-8 max-w-3xl mx-auto animate-fade-in" style={{ animationDelay: '200ms' }}>
-            Your AI assistant for finance and investments. Get instant, jargon-free answers to all your financial questions.
+            Your AI assistant for smarter investing. Get instant, jargon-free answers to all your financial questions and personalized investment advice.
           </p>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12 animate-fade-in" style={{ animationDelay: '300ms' }}>
+          {/* Financial stats */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-10 animate-fade-in" style={{ animationDelay: '300ms' }}>
+            {financialStats.map((stat, index) => (
+              <div key={index} className="glass-morphism p-4 rounded-xl flex items-center justify-center gap-3">
+                <div className="bg-primary/20 p-2 rounded-full text-primary">
+                  {stat.icon}
+                </div>
+                <div className="text-left">
+                  <p className="text-sm text-muted-foreground">{stat.label}</p>
+                  <p className="text-lg font-bold">{stat.value}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12 animate-fade-in" style={{ animationDelay: '350ms' }}>
             {features.map((feature, index) => (
               <div key={index} className="glass-morphism p-6 rounded-xl hover:scale-105 transition-transform">
                 <div className="flex justify-center mb-4">
