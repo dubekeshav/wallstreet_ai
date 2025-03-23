@@ -1,34 +1,16 @@
 
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { 
-  Plus, 
-  ChevronRight, 
-  Pin, 
-  Tag, 
-  Trash2, 
-  MoreHorizontal, 
-  Menu
-} from 'lucide-react';
 import { useChat } from '@/context/ChatContext';
 import { useToast } from '@/components/ui/use-toast';
-
-// Define the chat history type
-interface ChatHistoryItem {
-  id: string;
-  title: string;
-  preview: string;
-  timestamp: Date;
-  isPinned?: boolean;
-  tag?: {
-    name: string;
-    color: string;
-  };
-}
+import ChatSidebarHeader from '@/components/chat/ChatSidebarHeader';
+import NewChatButton from '@/components/chat/NewChatButton';
+import ChatHistoryList from '@/components/chat/ChatHistoryList';
+import ChatSidebarFooter from '@/components/chat/ChatSidebarFooter';
+import { ChatHistoryItemData } from '@/components/chat/ChatHistoryItem';
 
 // Mock data for chat history
-const mockChatHistory: ChatHistoryItem[] = [
+const mockChatHistory: ChatHistoryItemData[] = [
   {
     id: '1',
     title: 'Stock Analysis',
@@ -82,7 +64,6 @@ interface ChatSidebarProps {
 }
 
 const ChatSidebar: React.FC<ChatSidebarProps> = ({ isOpen, onClose, onNewChat, onTagChat }) => {
-  const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
   const [visibleChats, setVisibleChats] = useState(3);
   const [pinnedChats, setPinnedChats] = useState<string[]>(
     mockChatHistory.filter(chat => chat.isPinned).map(chat => chat.id)
@@ -90,13 +71,6 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ isOpen, onClose, onNewChat, o
   
   const { toast } = useToast();
   const { clearMessages, loadChatHistory } = useChat();
-  const navigate = useNavigate();
-  
-  const toggleDropdown = (chatId: string, e: React.MouseEvent) => {
-    e.stopPropagation(); // Prevent opening the chat
-    e.preventDefault(); // Prevent any navigation
-    setActiveDropdown(activeDropdown === chatId ? null : chatId);
-  };
   
   const handlePinChat = (chatId: string, e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent opening the chat
@@ -111,15 +85,12 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ isOpen, onClose, onNewChat, o
       title: pinnedChats.includes(chatId) ? "Chat unpinned" : "Chat pinned",
       duration: 2000,
     });
-    
-    setActiveDropdown(null);
   };
   
   const handleAddTag = (chatId: string, e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent opening the chat
     e.preventDefault(); // Prevent any navigation
     onTagChat(chatId);
-    setActiveDropdown(null);
   };
   
   const handleDeleteChat = (chatId: string, e: React.MouseEvent) => {
@@ -130,8 +101,6 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ isOpen, onClose, onNewChat, o
       description: "The chat has been removed from your history.",
       duration: 2000,
     });
-    
-    setActiveDropdown(null);
   };
   
   const handleChatClick = (chatId: string, e: React.MouseEvent) => {
@@ -147,20 +116,14 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ isOpen, onClose, onNewChat, o
     }
   };
   
+  const handleNewChat = () => {
+    onNewChat();
+    clearMessages();
+  };
+  
   const showAllChats = () => {
     setVisibleChats(mockChatHistory.length);
   };
-  
-  // Sort chats with pinned ones at the top
-  const sortedChats = [...mockChatHistory].sort((a, b) => {
-    const aIsPinned = pinnedChats.includes(a.id);
-    const bIsPinned = pinnedChats.includes(b.id);
-    
-    if (aIsPinned && !bIsPinned) return -1;
-    if (!aIsPinned && bIsPinned) return 1;
-    
-    return b.timestamp.getTime() - a.timestamp.getTime();
-  });
   
   return (
     <div 
@@ -169,122 +132,23 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ isOpen, onClose, onNewChat, o
       }`}
     >
       <div className="flex flex-col h-full">
-        <div className="p-4 border-b border-sidebar-border">
-          <div className="flex items-center justify-between">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onClose}
-              className="text-sidebar-foreground transition-transform duration-300"
-            >
-              <Menu className="h-5 w-5" />
-            </Button>
-          </div>
-        </div>
-        
-        <div className="p-3">
-          <Button 
-            onClick={() => {
-              onNewChat();
-              clearMessages();
-            }} 
-            className="w-full justify-start group bg-sidebar-primary text-sidebar-primary-foreground hover:bg-sidebar-primary/90"
-          >
-            <Plus className="mr-2 h-4 w-4 group-hover:rotate-90 transition-transform duration-200" />
-            New Chat
-          </Button>
-        </div>
+        <ChatSidebarHeader onClose={onClose} />
+        <NewChatButton onClick={handleNewChat} />
         
         <div className="flex-1 overflow-y-auto">
-          <div className="px-3 py-2">
-            <h3 className="text-sm font-medium text-sidebar-foreground mb-3">Recent Chats</h3>
-            <ul className="space-y-4"> {/* Increased spacing between chat items */}
-              {sortedChats.slice(0, visibleChats).map((chat) => (
-                <li key={chat.id} className="relative group">
-                  <div 
-                    className={`flex flex-col text-left rounded-md px-3 py-3 transition-colors text-sm ${
-                      chat.tag 
-                        ? `hover:bg-opacity-80 cursor-pointer` 
-                        : 'hover:bg-sidebar-accent hover:text-sidebar-accent-foreground cursor-pointer'
-                    }`}
-                    style={chat.tag ? { 
-                      backgroundColor: `${chat.tag.color}25`,
-                    } : {}}
-                    onClick={(e) => handleChatClick(chat.id, e)}
-                  >
-                    <div className="flex items-center justify-between">
-                      <span className="font-medium truncate flex items-center gap-1 max-w-[82%] text-xs">
-                        {pinnedChats.includes(chat.id) && (
-                          <Pin className="inline h-3 w-3 text-sidebar-primary" />
-                        )}
-                        {chat.preview.length > 30 ? chat.preview.substring(0, 30) + '...' : chat.preview}
-                        {chat.tag && (
-                          <span 
-                            className="inline-block px-1.5 py-0.5 text-[10px] rounded-full text-white ml-1"
-                            style={{ backgroundColor: chat.tag.color }}
-                          >
-                            {chat.tag.name}
-                          </span>
-                        )}
-                      </span>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
-                        onClick={(e) => toggleDropdown(chat.id, e)}
-                      >
-                        <MoreHorizontal className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                  
-                  {/* Dropdown menu */}
-                  {activeDropdown === chat.id && (
-                    <div className="absolute right-2 top-10 z-10 bg-popover shadow-md rounded-md py-1 animate-in slide-in-from-top-5 fade-in-20 w-48">
-                      <button 
-                        className="flex w-full items-center px-3 py-2 text-sm hover:bg-accent hover:text-accent-foreground"
-                        onClick={(e) => handlePinChat(chat.id, e)}
-                      >
-                        <Pin className="mr-2 h-4 w-4" />
-                        {pinnedChats.includes(chat.id) ? 'Unpin chat' : 'Pin chat'}
-                      </button>
-                      <button 
-                        className="flex w-full items-center px-3 py-2 text-sm hover:bg-accent hover:text-accent-foreground"
-                        onClick={(e) => handleAddTag(chat.id, e)}
-                      >
-                        <Tag className="mr-2 h-4 w-4" />
-                        Add Tag
-                      </button>
-                      <button 
-                        className="flex w-full items-center px-3 py-2 text-sm text-destructive hover:bg-destructive/10"
-                        onClick={(e) => handleDeleteChat(chat.id, e)}
-                      >
-                        <Trash2 className="mr-2 h-4 w-4" />
-                        Delete chat
-                      </button>
-                    </div>
-                  )}
-                </li>
-              ))}
-            </ul>
-            
-            {visibleChats < mockChatHistory.length && (
-              <button 
-                onClick={showAllChats}
-                className="text-sm text-sidebar-primary hover:underline mt-4 flex items-center"
-              >
-                See more
-                <ChevronRight className="h-3 w-3 ml-0.5" />
-              </button>
-            )}
-          </div>
+          <ChatHistoryList 
+            chats={mockChatHistory}
+            visibleChats={visibleChats}
+            pinnedChats={pinnedChats}
+            onChatClick={handleChatClick}
+            onPinChat={handlePinChat}
+            onAddTag={handleAddTag}
+            onDeleteChat={handleDeleteChat}
+            onShowMoreChats={showAllChats}
+          />
         </div>
         
-        <div className="p-3 border-t border-sidebar-border">
-          <div className="text-xs text-sidebar-foreground/70">
-            <p>© {new Date().getFullYear()} WallStreet AI</p>
-          </div>
-        </div>
+        <ChatSidebarFooter />
       </div>
     </div>
   );

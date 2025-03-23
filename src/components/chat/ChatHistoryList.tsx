@@ -1,0 +1,69 @@
+
+import React from 'react';
+import { ChevronRight } from 'lucide-react';
+import ChatHistoryItem, { ChatHistoryItemData } from './ChatHistoryItem';
+
+interface ChatHistoryListProps {
+  chats: ChatHistoryItemData[];
+  visibleChats: number;
+  pinnedChats: string[];
+  onChatClick: (chatId: string, e: React.MouseEvent) => void;
+  onPinChat: (chatId: string, e: React.MouseEvent) => void;
+  onAddTag: (chatId: string, e: React.MouseEvent) => void;
+  onDeleteChat: (chatId: string, e: React.MouseEvent) => void;
+  onShowMoreChats: () => void;
+}
+
+const ChatHistoryList: React.FC<ChatHistoryListProps> = ({
+  chats,
+  visibleChats,
+  pinnedChats,
+  onChatClick,
+  onPinChat,
+  onAddTag,
+  onDeleteChat,
+  onShowMoreChats
+}) => {
+  // Sort chats with pinned ones at the top
+  const sortedChats = [...chats].sort((a, b) => {
+    const aIsPinned = pinnedChats.includes(a.id);
+    const bIsPinned = pinnedChats.includes(b.id);
+    
+    if (aIsPinned && !bIsPinned) return -1;
+    if (!aIsPinned && bIsPinned) return 1;
+    
+    return b.timestamp.getTime() - a.timestamp.getTime();
+  });
+  
+  return (
+    <div className="px-3 py-2">
+      <h3 className="text-sm font-medium text-sidebar-foreground mb-3">Recent Chats</h3>
+      <ul className="space-y-4">
+        {sortedChats.slice(0, visibleChats).map((chat) => (
+          <li key={chat.id}>
+            <ChatHistoryItem 
+              chat={chat}
+              isPinned={pinnedChats.includes(chat.id)}
+              onChatClick={onChatClick}
+              onPinChat={onPinChat}
+              onAddTag={onAddTag}
+              onDeleteChat={onDeleteChat}
+            />
+          </li>
+        ))}
+      </ul>
+      
+      {visibleChats < chats.length && (
+        <button 
+          onClick={onShowMoreChats}
+          className="text-sm text-sidebar-primary hover:underline mt-4 flex items-center"
+        >
+          See more
+          <ChevronRight className="h-3 w-3 ml-0.5" />
+        </button>
+      )}
+    </div>
+  );
+};
+
+export default ChatHistoryList;
