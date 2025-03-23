@@ -8,7 +8,7 @@ import ChatMessage from '@/components/ChatMessage';
 import ChatSidebar from '@/components/ChatSidebar';
 import SidebarBackdrop from '@/components/SidebarBackdrop';
 import LoadingDots from '@/components/LoadingDots';
-import { useMediaQuery } from '@/hooks/use-mobile';
+import { useIsMobile } from '@/hooks/use-mobile';
 import Logo from '@/components/Logo';
 
 const Chat = () => {
@@ -16,7 +16,7 @@ const Chat = () => {
   const { messages, addMessage, isLoading, setIsLoading, clearMessages } = useChat();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const isMobile = useMediaQuery('(max-width: 768px)');
+  const isMobile = useIsMobile();
   
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen);
@@ -71,6 +71,10 @@ const Chat = () => {
         isOpen={isSidebarOpen} 
         onClose={closeSidebar}
         onNewChat={clearMessages}
+        onTagChat={(chatId) => {
+          // Placeholder for tag functionality
+          console.log(`Adding tag to chat ${chatId}`);
+        }}
       />
       
       {/* Main content */}
@@ -86,15 +90,16 @@ const Chat = () => {
               <Menu className={`w-5 h-5 transition-transform duration-300 ${isSidebarOpen ? 'rotate-90' : ''}`} />
             </button>
             
-            <Logo onClick={() => navigate('/')} className="cursor-pointer" />
+            <Logo className="cursor-pointer" />
           </div>
           
           <div className="flex items-center">
             <button 
               className="flex items-center justify-center h-10 px-4 rounded-md text-sm font-medium bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-colors"
+              onClick={() => navigate('/')}
             >
               <BarChart3 className="w-4 h-4 mr-2" />
-              Models
+              Home
             </button>
           </div>
         </header>
