@@ -10,14 +10,14 @@ interface ChatSidebarHeaderProps {
 
 const ChatSidebarHeader: React.FC<ChatSidebarHeaderProps> = ({ onClose }) => {
   return (
-    <div className="p-4 border-b border-amber-200 bg-gradient-to-r from-amber-100 to-orange-100">
+    <div className="p-4 border-b border-blue-200 bg-gradient-to-r from-indigo-100 to-blue-100">
       <div className="flex items-center justify-between">
         <Logo className="h-8 w-auto" />
         <Button
           variant="ghost"
           size="sm"
           onClick={onClose}
-          className="text-amber-800 transition-transform duration-300 hover:bg-amber-200/50 md:hidden"
+          className="text-indigo-800 transition-transform duration-300 hover:bg-blue-200/50 md:hidden"
         >
           <X className="h-5 w-5" />
         </Button>

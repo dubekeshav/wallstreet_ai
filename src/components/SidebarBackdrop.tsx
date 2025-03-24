@@ -11,7 +11,7 @@ const SidebarBackdrop: React.FC<SidebarBackdropProps> = ({ isOpen, onClick }) =>
   
   return (
     <div 
-      className="fixed inset-0 bg-amber-900/20 backdrop-blur-sm z-20 md:hidden transition-opacity duration-300 ease-in-out"
+      className="fixed inset-0 bg-black/20 backdrop-blur-sm z-20 md:hidden transition-opacity duration-300 ease-in-out"
       onClick={onClick}
       aria-hidden="true"
     />

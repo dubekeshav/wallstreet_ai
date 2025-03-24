@@ -19,16 +19,16 @@ interface TagModalProps {
   chatId: string | null;
 }
 
-// Predefined colors for new tags (warm tones to match our amber/orange theme)
+// Predefined colors for new tags (cool tones to match our blue/indigo theme)
 const colorOptions = [
-  '#FF8C00', // Dark Orange
-  '#E67E22', // Carrot Orange
-  '#D35400', // Pumpkin
-  '#F39C12', // Orange
-  '#FFA500', // Classic Orange
-  '#FF7F50', // Coral
-  '#E74C3C', // Tomato
-  '#C0392B', // Crimson
+  '#4F46E5', // Indigo
+  '#3B82F6', // Blue
+  '#2563EB', // Royal Blue
+  '#1D4ED8', // Dark Blue
+  '#6366F1', // Periwinkle
+  '#8B5CF6', // Purple
+  '#A78BFA', // Lavender
+  '#C084FC', // Light Purple
 ];
 
 const TagModal: React.FC<TagModalProps> = ({ isOpen, onClose, chatId }) => {
@@ -136,9 +136,9 @@ const TagModal: React.FC<TagModalProps> = ({ isOpen, onClose, chatId }) => {
   
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-200">
+      <DialogContent className="sm:max-w-md bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-200">
         <DialogHeader>
-          <DialogTitle className="flex items-center text-amber-900">
+          <DialogTitle className="flex items-center text-indigo-900">
             <Tag className="mr-2 h-5 w-5" />
             Add Tag to Chat
           </DialogTitle>
@@ -147,13 +147,13 @@ const TagModal: React.FC<TagModalProps> = ({ isOpen, onClose, chatId }) => {
         <div className={`grid gap-4 py-4 transition-all duration-300 ${animateIn ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}>
           {existingTags.length > 0 && (
             <div className="space-y-2">
-              <h3 className="text-sm font-medium text-amber-900">Select Existing Tag</h3>
+              <h3 className="text-sm font-medium text-indigo-900">Select Existing Tag</h3>
               <div className="flex flex-wrap gap-2">
                 {existingTags.map((tag) => (
                   <button
                     key={tag.name}
                     className={`px-3 py-1.5 rounded-full text-white text-sm transition-all duration-200 flex items-center gap-1 ${
-                      selectedTag === tag.name ? 'ring-2 ring-amber-500 ring-offset-2 scale-105' : 'hover:opacity-80'
+                      selectedTag === tag.name ? 'ring-2 ring-indigo-500 ring-offset-2 scale-105' : 'hover:opacity-80'
                     }`}
                     style={{ backgroundColor: tag.color }}
                     onClick={() => handleSelectTag(tag.name)}
@@ -170,8 +170,8 @@ const TagModal: React.FC<TagModalProps> = ({ isOpen, onClose, chatId }) => {
           
           <div>
             <button
-              className={`flex items-center gap-1 px-3 py-1.5 rounded-full bg-gradient-to-r from-amber-400 to-orange-400 text-white text-sm transition-all duration-200 ${
-                isCreatingNew ? 'ring-2 ring-amber-500 ring-offset-2 scale-105' : 'hover:from-amber-500 hover:to-orange-500'
+              className={`flex items-center gap-1 px-3 py-1.5 rounded-full bg-gradient-to-r from-indigo-400 to-blue-400 text-white text-sm transition-all duration-200 ${
+                isCreatingNew ? 'ring-2 ring-indigo-500 ring-offset-2 scale-105' : 'hover:from-indigo-500 hover:to-blue-500'
               }`}
               onClick={handleCreateMode}
             >
@@ -183,7 +183,7 @@ const TagModal: React.FC<TagModalProps> = ({ isOpen, onClose, chatId }) => {
           {isCreatingNew && (
             <div className="space-y-4 animate-fade-in">
               <div>
-                <label htmlFor="tag-name" className="text-sm font-medium text-amber-900">
+                <label htmlFor="tag-name" className="text-sm font-medium text-indigo-900">
                   New Tag Name
                 </label>
                 <Input
@@ -191,13 +191,13 @@ const TagModal: React.FC<TagModalProps> = ({ isOpen, onClose, chatId }) => {
                   value={newTagName}
                   onChange={(e) => setNewTagName(e.target.value)}
                   placeholder="Enter tag name"
-                  className="mt-1 border-amber-200 focus-visible:ring-amber-500"
+                  className="mt-1 border-blue-200 focus-visible:ring-indigo-500"
                   autoFocus
                 />
               </div>
               
               <div>
-                <label className="text-sm font-medium text-amber-900">
+                <label className="text-sm font-medium text-indigo-900">
                   Select Color
                 </label>
                 <div className="flex flex-wrap gap-2 mt-1">
@@ -205,7 +205,7 @@ const TagModal: React.FC<TagModalProps> = ({ isOpen, onClose, chatId }) => {
                     <button
                       key={color}
                       className={`h-8 w-8 rounded-full transition-all duration-200 relative ${
-                        selectedColor === color ? 'ring-2 ring-amber-500 ring-offset-2 scale-110' : 'hover:opacity-80'
+                        selectedColor === color ? 'ring-2 ring-indigo-500 ring-offset-2 scale-110' : 'hover:opacity-80'
                       }`}
                       style={{ backgroundColor: color }}
                       onClick={() => handleColorSelect(color)}
@@ -222,7 +222,7 @@ const TagModal: React.FC<TagModalProps> = ({ isOpen, onClose, chatId }) => {
               </div>
               
               <div className="mt-2">
-                <h4 className="text-sm font-medium mb-2 text-amber-900">Preview</h4>
+                <h4 className="text-sm font-medium mb-2 text-indigo-900">Preview</h4>
                 <div 
                   className="inline-flex items-center px-3 py-1.5 rounded-full text-white animate-pulse-slow"
                   style={{ backgroundColor: selectedColor }}
@@ -235,13 +235,13 @@ const TagModal: React.FC<TagModalProps> = ({ isOpen, onClose, chatId }) => {
         </div>
         
         <DialogFooter>
-          <Button variant="outline" onClick={onClose} className="gap-1 border-amber-200 hover:bg-amber-100 hover:text-amber-900">
+          <Button variant="outline" onClick={onClose} className="gap-1 border-blue-200 hover:bg-blue-100 hover:text-indigo-900">
             <X className="h-4 w-4" />
             Cancel
           </Button>
           <Button 
             onClick={handleSave}
-            className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 gap-1"
+            className="bg-gradient-to-r from-indigo-500 to-blue-500 hover:from-indigo-600 hover:to-blue-600 gap-1"
           >
             <Check className="h-4 w-4" />
             Save

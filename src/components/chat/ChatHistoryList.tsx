@@ -37,26 +37,32 @@ const ChatHistoryList: React.FC<ChatHistoryListProps> = ({
   
   return (
     <div className="px-3 py-2">
-      <h3 className="text-sm font-medium text-sidebar-foreground mb-3">Recent Chats</h3>
-      <ul className="space-y-4">
-        {sortedChats.slice(0, visibleChats).map((chat) => (
-          <li key={chat.id}>
-            <ChatHistoryItem 
-              chat={chat}
-              isPinned={pinnedChats.includes(chat.id)}
-              onChatClick={onChatClick}
-              onPinChat={onPinChat}
-              onAddTag={onAddTag}
-              onDeleteChat={onDeleteChat}
-            />
-          </li>
-        ))}
-      </ul>
+      <h3 className="text-sm font-medium text-indigo-900 mb-3">Recent Chats</h3>
+      {sortedChats.length === 0 ? (
+        <div className="text-center py-4 text-sm text-gray-500">
+          No chat history yet. Start a new chat!
+        </div>
+      ) : (
+        <ul className="space-y-2">
+          {sortedChats.slice(0, visibleChats).map((chat) => (
+            <li key={chat.id}>
+              <ChatHistoryItem 
+                chat={chat}
+                isPinned={pinnedChats.includes(chat.id)}
+                onChatClick={onChatClick}
+                onPinChat={onPinChat}
+                onAddTag={onAddTag}
+                onDeleteChat={onDeleteChat}
+              />
+            </li>
+          ))}
+        </ul>
+      )}
       
       {visibleChats < chats.length && (
         <button 
           onClick={onShowMoreChats}
-          className="text-sm text-sidebar-primary hover:underline mt-4 flex items-center"
+          className="text-sm text-indigo-600 hover:underline mt-4 flex items-center"
         >
           See more
           <ChevronRight className="h-3 w-3 ml-0.5" />
