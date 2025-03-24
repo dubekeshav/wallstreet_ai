@@ -1,96 +1,108 @@
-
-import React, { useState, useContext, ReactNode, createContext } from 'react';
-
-export type MessageSender = 'user' | 'assistant';
-
-export interface Message {
-  id: string;
-  content: string;
-  sender: MessageSender;
-  timestamp: Date;
-}
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import { ChatMessage } from '@/types/chat';
+import { chatApi } from '@/lib/api';
 
 interface ChatContextType {
-  messages: Message[];
+  messages: ChatMessage[];
   isLoading: boolean;
-  addMessage: (content: string, sender: MessageSender) => void;
+  sessionId: string | null;
+  addMessage: (content: string, sender: 'user' | 'assistant') => void;
   clearMessages: () => void;
   setIsLoading: (isLoading: boolean) => void;
   loadChatHistory: (chatId: string) => void;
+  sendMessage: (content: string) => Promise<void>;
 }
 
 const ChatContext = createContext<ChatContextType | undefined>(undefined);
 
-export const useChat = (): ChatContextType => {
-  const context = useContext(ChatContext);
-  if (!context) {
-    throw new Error('useChat must be used within a ChatProvider');
-  }
-  return context;
-};
-
-interface ChatProviderProps {
-  children: ReactNode;
-}
-
-export const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
-  const [messages, setMessages] = useState<Message[]>([]);
+export function ChatProvider({ children }: { children: React.ReactNode }) {
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [sessionId, setSessionId] = useState<string | null>(null);
 
-  // Sample chat histories for demo
-  const chatHistories: Record<string, Message[]> = {
-    '1': [
-      {
-        id: '1-1',
-        content: 'What are the best performing tech stocks this quarter?',
-        sender: 'user',
-        timestamp: new Date(2023, 6, 12, 10, 0)
-      },
-      {
-        id: '1-2',
-        content: 'Based on recent market data, the top performing tech stocks this quarter include NVIDIA (NVDA), which has seen significant growth due to AI demand, Apple (AAPL) with strong iPhone sales, and Microsoft (MSFT) with cloud services growth. AMD has also performed well with new chip releases. Remember that past performance doesn\'t guarantee future results, and it\'s always wise to diversify your investments.',
-        sender: 'assistant',
-        timestamp: new Date(2023, 6, 12, 10, 1)
+  // Create a new chat session when the provider mounts
+  useEffect(() => {
+    const initializeChat = async () => {
+      try {
+        setIsLoading(true);
+        const session = await chatApi.createNewChat();
+        setSessionId(session.session_id);
+      } catch (error) {
+        console.error('Error initializing chat:', error);
+      } finally {
+        setIsLoading(false);
       }
-    ],
-    '2': [
-      {
-        id: '2-1',
-        content: 'How should I diversify my investment portfolio?',
-        sender: 'user',
-        timestamp: new Date(2023, 6, 11, 14, 30)
-      },
-      {
-        id: '2-2',
-        content: 'A well-diversified portfolio typically includes a mix of asset classes such as stocks, bonds, and cash equivalents. Within stocks, consider diversifying across different sectors (tech, healthcare, consumer goods) and geographies (US, international markets). Also include different market caps (large, mid, small). For bonds, vary between government, municipal, and corporate bonds with different maturities. Consider adding alternative investments like REITs or commodities depending on your risk tolerance and investment timeline.',
-        sender: 'assistant',
-        timestamp: new Date(2023, 6, 11, 14, 32)
-      }
-    ],
-    // Add more sample histories as needed
-  };
+    };
 
-  const addMessage = (content: string, sender: MessageSender) => {
-    const newMessage: Message = {
+    initializeChat();
+  }, []);
+
+  const addMessage = (content: string, sender: 'user' | 'assistant') => {
+    const newMessage: ChatMessage = {
       id: `msg-${Date.now()}`,
       content,
       sender,
       timestamp: new Date(),
     };
-    
-    setMessages((prev) => [...prev, newMessage]);
+    setMessages(prev => [...prev, newMessage]);
   };
 
-  const clearMessages = () => {
-    setMessages([]);
+  const sendMessage = async (content: string) => {
+    if (!sessionId) {
+      console.error('No active chat session');
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+      // Add user message immediately
+      addMessage(content, 'user');
+      
+      // Get response from API
+      const response = await chatApi.sendMessage(sessionId, content);
+      
+      // Add assistant message with empty content first
+      const assistantMessageId = `msg-${Date.now()}`;
+      addMessage('', 'assistant');
+      
+      // Update the message with the actual content
+      setMessages(prev => prev.map(msg => 
+        msg.id === assistantMessageId 
+          ? { ...msg, content: response.response }
+          : msg
+      ));
+    } catch (error) {
+      console.error('Error sending message:', error);
+      addMessage("Sorry, I encountered an error. Please try again later.", 'assistant');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const loadChatHistory = (chatId: string) => {
-    const history = chatHistories[chatId];
-    if (history) {
+  const clearMessages = async () => {
+    try {
+      setIsLoading(true);
+      const session = await chatApi.createNewChat();
+      setSessionId(session.session_id);
+      setMessages([]);
+    } catch (error) {
+      console.error('Error starting new chat:', error);
+      // Fallback to just clearing messages if API fails
+      setMessages([]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const loadChatHistory = async (chatId: string) => {
+    try {
+      setIsLoading(true);
+      const history = await chatApi.getChatHistory(chatId);
       setMessages(history);
-    } else {
-      console.log(`No history found for chat ID: ${chatId}`);
+    } catch (error) {
+      console.error('Error loading chat history:', error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -99,13 +111,23 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
       value={{
         messages,
         isLoading,
+        sessionId,
         addMessage,
         clearMessages,
         setIsLoading,
-        loadChatHistory
+        loadChatHistory,
+        sendMessage,
       }}
     >
       {children}
     </ChatContext.Provider>
   );
-};
+}
+
+export function useChat() {
+  const context = useContext(ChatContext);
+  if (context === undefined) {
+    throw new Error('useChat must be used within a ChatProvider');
+  }
+  return context;
+}

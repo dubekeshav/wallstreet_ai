@@ -1,50 +1,21 @@
+import requests
+import pandas as pd
+from app.config import ALPHA_VANTAGE_API_KEY  # Assuming you'll store API keys here
 
-from typing import Optional
-import base64
-import io
-import matplotlib.pyplot as plt
-import numpy as np
+def get_stock_price(symbol):
+    if not ALPHA_VANTAGE_API_KEY:
+        return {"error": "Alpha Vantage API key not configured"}
+    url = f"https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol={symbol}&apikey={ALPHA_VANTAGE_API_KEY}"
+    try:
+        response = requests.get(url)
+        response.raise_for_status()  # Raise an exception for bad status codes
+        data = response.json()
+        if "Global Quote" in data and data["Global Quote"]:
+            return {"price": data['Global Quote']['05. price']}
+        else:
+            return {"error": f"Could not retrieve price for {symbol}"}
+    except requests.exceptions.RequestException as e:
+        return {"error": f"Error fetching data: {e}"}
 
-def generate_chart_if_needed(query: str, response: str) -> Optional[str]:
-    """
-    Generate a chart image if the query warrants visual data
-    
-    Args:
-        query: The user's query
-        response: The response text
-        
-    Returns:
-        Optional[str]: Base64 encoded chart image or None
-    """
-    # Check if the query is asking for visual data
-    chart_keywords = [
-        "chart", "graph", "plot", "visualization", "trend", 
-        "compare", "performance", "historical", "growth"
-    ]
-    
-    if not any(keyword in query.lower() for keyword in chart_keywords):
-        return None
-    
-    # Generate a mock chart for demonstration
-    plt.figure(figsize=(10, 6))
-    
-    # Sample data for demonstration
-    categories = ['S&P 500', 'NASDAQ', 'DOW', 'RUSSELL 2000']
-    performance = [12.5, 15.2, 8.7, 9.3]
-    
-    # Create bar chart
-    plt.bar(categories, performance, color='#f59e0b')
-    plt.title('Market Performance (YTD)')
-    plt.ylabel('% Return')
-    plt.grid(axis='y', linestyle='--', alpha=0.7)
-    
-    # Save to bytes buffer
-    buffer = io.BytesIO()
-    plt.savefig(buffer, format='png')
-    buffer.seek(0)
-    
-    # Convert to base64 for frontend display
-    image_base64 = base64.b64encode(buffer.getvalue()).decode('utf-8')
-    plt.close()
-    
-    return f"data:image/png;base64,{image_base64}"
+# Add similar functions for gold price, mutual fund price, technical indicators etc.
+# You might need to explore free APIs for these.

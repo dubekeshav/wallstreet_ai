@@ -1,57 +1,32 @@
-
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-import uvicorn
-from pydantic import BaseModel
-from typing import List, Optional
+from app.api.endpoints import chat, data
 
-app = FastAPI(title="WallStreet AI Backend")
+app = FastAPI()
 
-# Configure CORS
+# CORS settings (adjust as needed for your frontend's origin)
+origins = [
+    "http://localhost:3000",  # Default Next.js dev server
+    "http://localhost:8000",  # Example for other ports
+    "*",  # Be cautious with this in production
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # In production, replace with specific origins
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-class Message(BaseModel):
-    content: str
-    role: str
-
-
-class ChatRequest(BaseModel):
-    messages: List[Message]
-    query: str
-
-
-class ChatResponse(BaseModel):
-    response: str
-    sources: Optional[List[dict]] = None
-
+# Include API routers
+app.include_router(chat.router)
+app.include_router(data.router)
 
 @app.get("/")
-def read_root():
-    return {"message": "Welcome to WallStreet AI API"}
-
-
-@app.post("/api/chat", response_model=ChatResponse)
-async def chat(request: ChatRequest):
-    try:
-        # This is a placeholder for the actual AI processing
-        # In a real implementation, this would connect to your RAG pipeline
-        
-        return {
-            "response": f"This is a mock response to: {request.query}. In a real implementation, this would be processed by the RAG pipeline.",
-            "sources": [
-                {"title": "Sample Source 1", "url": "https://example.com/1"},
-                {"title": "Sample Source 2", "url": "https://example.com/2"}
-            ]
-        }
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
+async def root():
+    return {"message": "WallStreet AI Backend is running!"}
 
 if __name__ == "__main__":
-    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8000)

@@ -1,76 +1,73 @@
-
-from fastapi import APIRouter, HTTPException, Depends, BackgroundTasks
+from fastapi import APIRouter, HTTPException
+from typing import List, Dict
+import uuid
 from pydantic import BaseModel
-from typing import List, Optional, Dict, Any
+from app.core.rag.rag_pipeline import rag_pipeline
 import logging
-from ...core.rag.rag_pipeline import process_query
-from ...core.orchestration.chart_generation import generate_chart_if_needed
-from ...utils.utils import sanitize_input
 
-router = APIRouter()
+# Configure logging
+logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-class Message(BaseModel):
-    content: str
-    role: str
+router = APIRouter(prefix="/chat", tags=["chat"])
 
-
-class ChatRequest(BaseModel):
-    messages: List[Message]
+# Request models
+class ChatMessage(BaseModel):
+    session_id: str
     query: str
 
+chat_history: Dict[str, List[Dict]] = {}
 
-class ChatResponse(BaseModel):
-    response: str
-    sources: Optional[List[Dict[str, Any]]] = None
-    chart: Optional[str] = None
+@router.post("/new")
+async def new_chat():
+    session_id = str(uuid.uuid4())
+    logger.info(f"[Chat] Creating new chat session: {session_id}")
+    chat_history[session_id] = []
+    return {"session_id": session_id, "message": "New chat started"}
 
+@router.post("/send")
+async def send_message(message: ChatMessage):
+    logger.info(f"[Chat] Received message for session {message.session_id}")
+    logger.debug(f"[Chat] Query: {message.query[:100]}...")
+    
+    if message.session_id not in chat_history:
+        logger.error(f"[Chat] Session not found: {message.session_id}")
+        raise HTTPException(status_code=404, detail="Session not found")
 
-@router.post("/chat", response_model=ChatResponse)
-async def chat(request: ChatRequest, background_tasks: BackgroundTasks):
     try:
-        # Sanitize input
-        sanitized_query = sanitize_input(request.query)
+        chat_history[message.session_id].append({"role": "user", "content": message.query})
+        logger.info("[Chat] Starting RAG pipeline")
+        response = rag_pipeline(message.query)
+        logger.info("[Chat] RAG pipeline completed successfully")
         
-        # Process the query using RAG pipeline
-        response, sources = process_query(sanitized_query, request.messages)
+        # Split response into content and sources if present
+        response_parts = response.split("\n\nSources:")
+        content = response_parts[0]
+        sources = response_parts[1] if len(response_parts) > 1 else None
         
-        # Check if we need to generate a chart
-        chart_data = generate_chart_if_needed(sanitized_query, response)
+        # Store both content and sources in chat history
+        chat_history[message.session_id].append({
+            "role": "bot",
+            "content": content,
+            "sources": sources
+        })
         
+        logger.info(f"[Chat] Response length: {len(content)} characters")
         return {
-            "response": response,
-            "sources": sources,
-            "chart": chart_data
+            "response": content,
+            "sources": sources
         }
     except Exception as e:
-        logger.error(f"Error processing chat request: {str(e)}")
+        logger.error(f"[Chat] Error processing message: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
-
-@router.get("/history")
-async def get_chat_history():
-    """
-    Endpoint to retrieve chat history for the current user.
-    In a real implementation, this would be connected to a database
-    and would use authentication to retrieve the correct history.
-    """
-    # Mock chat history data
-    mock_history = [
-        {
-            "id": "1",
-            "title": "What are the best performing tech stocks?",
-            "created_at": "2023-07-12T10:00:00Z",
-            "updated_at": "2023-07-12T10:01:00Z",
-            "tags": ["stocks"]
-        },
-        {
-            "id": "2",
-            "title": "How should I diversify my portfolio?",
-            "created_at": "2023-07-11T14:30:00Z",
-            "updated_at": "2023-07-11T14:32:00Z",
-            "tags": ["investing"]
-        }
-    ]
+@router.get("/history/{session_id}")
+async def get_chat_history(session_id: str):
+    logger.info(f"[Chat] Retrieving history for session: {session_id}")
+    if session_id not in chat_history:
+        logger.error(f"[Chat] Session not found: {session_id}")
+        raise HTTPException(status_code=404, detail="Session not found")
     
-    return mock_history
+    history = chat_history[session_id]
+    logger.info(f"[Chat] Found {len(history)} messages in history")
+    return history

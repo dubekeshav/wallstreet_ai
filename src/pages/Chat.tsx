@@ -1,5 +1,4 @@
-
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useChat } from '@/context/ChatContext';
 import { BarChart3, Menu } from 'lucide-react';
@@ -13,9 +12,10 @@ import Logo from '@/components/Logo';
 
 const Chat = () => {
   const navigate = useNavigate();
-  const { messages, addMessage, isLoading, setIsLoading, clearMessages } = useChat();
+  const { messages, isLoading, clearMessages, sendMessage } = useChat();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const chatContainerRef = useRef<HTMLDivElement>(null);
+  const lastMessageRef = useRef<HTMLDivElement>(null);
   const isMobile = useIsMobile();
   
   const toggleSidebar = () => {
@@ -25,36 +25,70 @@ const Chat = () => {
   const closeSidebar = () => {
     setIsSidebarOpen(false);
   };
-  
-  useEffect(() => {
-    if (messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+
+  // Function to scroll to the last message
+  const scrollToLastMessage = useCallback(() => {
+    if (lastMessageRef.current && chatContainerRef.current) {
+      const container = chatContainerRef.current;
+      const messageElement = lastMessageRef.current;
+      
+      // Get container dimensions
+      const containerHeight = container.clientHeight;
+      const containerScrollHeight = container.scrollHeight;
+      
+      // Get message position
+      const messageTop = messageElement.offsetTop;
+      const messageHeight = messageElement.clientHeight;
+      
+      // Calculate the scroll position to show the message
+      const scrollPosition = messageTop - (containerHeight / 2) + (messageHeight / 2);
+      
+      // Ensure we don't scroll past the container bounds
+      const maxScroll = containerScrollHeight - containerHeight;
+      const finalScrollPosition = Math.max(0, Math.min(scrollPosition, maxScroll));
+      
+      // Apply the scroll position with smooth behavior
+      container.scrollTo({
+        top: finalScrollPosition,
+        behavior: 'smooth'
+      });
     }
-  }, [messages]);
-  
-  // Mock sending a message to the API
-  const handleSendMessage = async (message: string) => {
+  }, []);
+
+  // Function to scroll to bottom
+  const scrollToBottom = useCallback(() => {
+    if (chatContainerRef.current) {
+      const container = chatContainerRef.current;
+      container.scrollTo({
+        top: container.scrollHeight,
+        behavior: 'smooth'
+      });
+    }
+  }, []);
+
+  // Handle scrolling based on message changes and loading state
+  useEffect(() => {
+    if (messages.length > 0) {
+      // If we're loading (streaming response), scroll to last message
+      if (isLoading) {
+        scrollToLastMessage();
+      } else {
+        // If not loading, scroll to bottom
+        scrollToBottom();
+      }
+    }
+  }, [messages, isLoading, scrollToLastMessage, scrollToBottom]);
+
+  // Handle sending messages
+  const handleSendMessage = useCallback(async (message: string) => {
     if (!message.trim()) return;
     
-    // Add user message to the chat
-    addMessage(message, 'user');
-    
-    // Set loading state
-    setIsLoading(true);
-    
     try {
-      // Mock API call delay
-      setTimeout(() => {
-        const mockApiResponse = "Based on my analysis, investing in diversified ETFs such as VTI, VOO, or QQQ could be a good option for long-term growth. These provide exposure to a broad range of companies while minimizing risk compared to individual stocks. For beginners, I recommend starting with a small amount you're comfortable with, and consistently adding to your investments over time through dollar-cost averaging. Remember that past performance doesn't guarantee future results, and it's always good to do your own research or consult with a financial advisor.";
-        addMessage(mockApiResponse, 'assistant');
-        setIsLoading(false);
-      }, 1500);
+      await sendMessage(message);
     } catch (error) {
       console.error('Error sending message:', error);
-      setIsLoading(false);
-      addMessage("Sorry, I encountered an error. Please try again later.", 'assistant');
     }
-  };
+  }, [sendMessage]);
   
   return (
     <div className="flex h-screen w-screen overflow-hidden bg-background">
@@ -105,7 +139,10 @@ const Chat = () => {
         </header>
         
         {/* Chat container */}
-        <div className="flex-1 overflow-y-auto pt-4 px-4 md:px-8 pb-24 scroll-shadow">
+        <div 
+          ref={chatContainerRef}
+          className="flex-1 overflow-y-auto pt-4 px-4 md:px-8 pb-32 scroll-shadow"
+        >
           {messages.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-full max-w-3xl mx-auto">
               <div className="flex items-center justify-center w-16 h-16 rounded-full bg-secondary mb-4">
@@ -134,11 +171,15 @@ const Chat = () => {
           ) : (
             <div className="max-w-3xl mx-auto">
               {messages.map((message, index) => (
-                <ChatMessage 
-                  key={message.id} 
-                  message={message}
-                  isLatest={index === messages.length - 1} 
-                />
+                <div 
+                  key={message.id}
+                  ref={index === messages.length - 1 ? lastMessageRef : undefined}
+                >
+                  <ChatMessage 
+                    message={message}
+                    isLatest={index === messages.length - 1} 
+                  />
+                </div>
               ))}
               {isLoading && (
                 <div className="flex justify-start mb-4 max-w-[80%]">
@@ -147,13 +188,12 @@ const Chat = () => {
                   </div>
                 </div>
               )}
-              <div ref={messagesEndRef} />
             </div>
           )}
         </div>
         
         {/* Input area */}
-        <div className="absolute bottom-0 left-0 right-0 p-4 md:px-8 bg-gradient-to-t from-background to-background/80 pb-6">
+        <div className="fixed bottom-0 left-0 right-0 p-4 md:px-8 bg-gradient-to-t from-background via-background/95 to-transparent pb-6">
           <div className="max-w-3xl mx-auto">
             <ChatInput onSendMessage={handleSendMessage} disabled={isLoading} />
           </div>

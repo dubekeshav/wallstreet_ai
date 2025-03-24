@@ -1,45 +1,31 @@
+from sentence_transformers import SentenceTransformer
+import torch
 
-from typing import List
-import os
+embedding_model = None
 
-class EmbeddingService:
-    """
-    Service for generating and working with embeddings
-    
-    In a real implementation, this would use a model like
-    sentence-transformers, OpenAI embeddings, etc.
-    """
-    
-    def __init__(self):
-        self.model_name = os.getenv("EMBEDDING_MODEL", "sentence-transformers/all-MiniLM-L6-v2")
-    
-    def get_embeddings(self, texts: List[str]) -> List[List[float]]:
-        """
-        Generate embeddings for a list of texts
+def load_embedding_model(model_name='all-mpnet-base-v2'):
+    global embedding_model
+    if embedding_model is None:
+        # Check if CUDA is available
+        device = "cuda" if torch.cuda.is_available() else "cpu"
+        print(f"[Embedding] Using device: {device}")
+        if device == "cuda":
+            print(f"[Embedding] GPU Device: {torch.cuda.get_device_name(0)}")
+            print(f"[Embedding] GPU Memory: {torch.cuda.get_device_properties(0).total_memory / 1e9:.2f} GB")
         
-        Args:
-            texts: List of text strings to embed
-            
-        Returns:
-            List[List[float]]: Embeddings vectors
-        """
-        # This is a mock implementation
-        # In a real app, this would load the embedding model and generate actual embeddings
-        
-        # Return mock embeddings (simplified for demonstration)
-        mock_dimension = 8  # Real embeddings would have higher dimensions (e.g., 384, 768, 1536)
-        mock_embeddings = []
-        
-        for _ in texts:
-            # Generate a random unit vector as a mock embedding
-            import random
-            import math
-            
-            vector = [random.uniform(-1, 1) for _ in range(mock_dimension)]
-            # Normalize to unit length
-            magnitude = math.sqrt(sum(x*x for x in vector))
-            normalized = [x/magnitude for x in vector]
-            
-            mock_embeddings.append(normalized)
-        
-        return mock_embeddings
+        embedding_model = SentenceTransformer(model_name)
+        embedding_model.to(device)  # Move model to GPU if available
+        print(f"[Embedding] Model moved to {device}")
+    return embedding_model
+
+def generate_embeddings(text):
+    model = load_embedding_model()
+    # Use GPU for inference if available
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+    print(f"[Embedding] Generating embeddings on {device}")
+    return model.encode(text, device=device)
+
+def get_embedding_dimension():
+    model = load_embedding_model()
+    return model.get_sentence_embedding_dimension()
+

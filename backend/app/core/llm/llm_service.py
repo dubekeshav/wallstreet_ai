@@ -1,42 +1,39 @@
-
-from typing import List, Dict, Any
 import os
+from groq import Groq
+from app.config import GROQ_API_KEY
+import logging
 
-class LLMService:
-    """
-    Service for interacting with Large Language Models
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+client = None
+
+def get_groq_client():
+    global client
+    if client is None:
+        logger.info("[LLM] Initializing new Groq client")
+        client = Groq(api_key=GROQ_API_KEY)
+    return client
+
+def generate_response(prompt, max_tokens=1000):
+    logger.info("[LLM] Starting response generation")
+    logger.debug(f"[LLM] Prompt length: {len(prompt)} characters")
     
-    In a real implementation, this would connect to an API like OpenAI,
-    Anthropic, or self-hosted models via LangChain
-    """
-    
-    def __init__(self):
-        self.api_key = os.getenv("LLM_API_KEY", "")
-        self.model = os.getenv("LLM_MODEL", "gpt-3.5-turbo")
-    
-    def generate_response(self, query: str, context: List[Dict[str, Any]], chat_history: List[Dict[str, Any]]) -> str:
-        """
-        Generate a response using an LLM
-        
-        Args:
-            query: The user's query
-            context: Retrieved documents providing context
-            chat_history: Previous chat messages
-            
-        Returns:
-            str: Generated response
-        """
-        # This is a mock implementation
-        # In a real app, this would make an API call to an LLM service
-        
-        if "stock" in query.lower() or "invest" in query.lower():
-            return "Based on current market trends, diversified ETFs are generally considered a good investment option for beginners. They provide exposure to multiple stocks, reducing risk compared to individual stock picking. Popular choices include VTI (Total Market), VOO (S&P 500), and QQQ (Tech-heavy Nasdaq)."
-        
-        if "portfolio" in query.lower():
-            return "A well-diversified portfolio typically includes a mix of stocks, bonds, and possibly alternative investments. The exact allocation depends on your risk tolerance, investment timeline, and financial goals. A common starting point is the 60/40 portfolio: 60% stocks for growth and 40% bonds for stability."
-        
-        if "crypto" in query.lower() or "bitcoin" in query.lower():
-            return "Cryptocurrency investments carry significant volatility and risk. While they've shown substantial returns for some investors, they've also experienced dramatic downturns. If exploring this space, consider limiting crypto to a small percentage of your overall portfolio and focus on established options like Bitcoin and Ethereum."
-            
-        # Default response
-        return "As a financial assistant, I can provide information on investment strategies, market trends, and financial concepts. For specific investment advice tailored to your situation, consulting with a certified financial advisor is recommended."
+    client = get_groq_client()
+    try:
+        logger.info("[LLM] Sending request to Groq API")
+        completion = client.chat.completions.create(
+            model="llama-3.3-70b-versatile",
+            messages=[
+                {"role": "user", "content": prompt}
+            ],
+            temperature=0.3,
+        )
+        response = completion.choices[0].message.content
+        logger.info(f"[LLM] Successfully generated response of length: {len(response)}")
+        logger.debug(f"[LLM] Response preview: {response[:100]}...")
+        return response
+    except Exception as e:
+        logger.error(f"[LLM] Error generating response: {str(e)}")
+        raise

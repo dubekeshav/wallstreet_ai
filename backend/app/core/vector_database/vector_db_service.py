@@ -1,93 +1,113 @@
+from pinecone import Pinecone
+from app.core.embedding.embedding_service import generate_embeddings
+from app.config import PINECONE_API_KEY
+import logging
+import numpy as np
 
-from typing import List, Dict, Any
-import os
-import json
-import math
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
-class VectorDBService:
-    """
-    Service for managing and querying vector embeddings in a database
+# Initialize Pinecone client
+client = None
+index = None
+
+def get_client():
+    global client
+    if client is None:
+        logger.info("[VectorDB] Initializing new Pinecone client")
+        client = Pinecone(api_key=PINECONE_API_KEY)
+    return client
+
+def get_index(index_name="investment-knowledge"):
+    global index
+    if index is None:
+        logger.info(f"[VectorDB] Getting or creating index: {index_name}")
+        client = get_client()
+        index = client.Index(index_name)
+        # Log index stats
+        stats = index.describe_index_stats()
+        logger.info(f"[VectorDB] Index '{index_name}' contains {stats.total_vector_count} vectors")
+    return index
+
+def add_knowledge(documents, embeddings, ids, index_name="investment-knowledge"):
+    logger.info(f"[VectorDB] Starting to add {len(documents)} documents to index: {index_name}")
+    index = get_index(index_name)
     
-    In a real implementation, this would connect to a vector database
-    like Chroma, Pinecone, Weaviate, or FAISS
-    """
+    # Log embedding dimensions
+    if embeddings:
+        logger.info(f"[VectorDB] Embedding dimension: {len(embeddings[0])}")
+        logger.debug(f"[VectorDB] Sample embedding shape: {np.array(embeddings[0]).shape}")
     
-    def __init__(self):
-        self.db_path = os.getenv("VECTOR_DB_PATH", "./vectordb")
-        # Ensure the DB directory exists
-        os.makedirs(self.db_path, exist_ok=True)
-    
-    def add_documents(self, documents: List[Dict[str, Any]], embeddings: List[List[float]]) -> List[str]:
-        """
-        Add documents with their embeddings to the vector database
+    # Prepare vectors for Pinecone
+    vectors = []
+    for doc, embedding, id in zip(documents, embeddings, ids):
+        # Extract source file from id (format: file_hash_chunk_number)
+        source_file = id.split('_')[0] if '_' in id else 'unknown'
         
-        Args:
-            documents: List of document dictionaries
-            embeddings: Corresponding embeddings for each document
-            
-        Returns:
-            List[str]: IDs of the added documents
-        """
-        # This is a mock implementation
-        # In a real app, this would add the documents to a vector database
-        
-        # Generate mock IDs
-        import uuid
-        ids = [str(uuid.uuid4()) for _ in documents]
-        
-        return ids
-    
-    def search(self, query_embedding: List[float], top_k: int = 5) -> List[Dict[str, Any]]:
-        """
-        Search for similar documents using a query embedding
-        
-        Args:
-            query_embedding: Embedding vector of the query
-            top_k: Number of top results to return
-            
-        Returns:
-            List[Dict[str, Any]]: Top matching documents with similarity scores
-        """
-        # This is a mock implementation
-        # In a real app, this would query the vector database
-        
-        # Mock financial documents
-        mock_documents = [
-            {
-                "id": "doc1",
-                "title": "ETF Investment Strategies",
-                "content": "Exchange-Traded Funds (ETFs) offer diversified exposure to markets...",
-                "url": "https://example.com/etf-guide",
-                "similarity": 0.92
-            },
-            {
-                "id": "doc2",
-                "title": "Beginners Guide to Stock Investing",
-                "content": "When starting your investment journey, it's important to understand...",
-                "url": "https://example.com/stock-basics",
-                "similarity": 0.85
-            },
-            {
-                "id": "doc3",
-                "title": "Portfolio Diversification Principles",
-                "content": "Diversification helps reduce risk by spreading investments across...",
-                "url": "https://example.com/diversification",
-                "similarity": 0.78
-            },
-            {
-                "id": "doc4",
-                "title": "Understanding Bond Markets",
-                "content": "Bonds are debt securities that can provide income and stability...",
-                "url": "https://example.com/bonds",
-                "similarity": 0.72
-            },
-            {
-                "id": "doc5",
-                "title": "Retirement Planning Fundamentals",
-                "content": "Planning for retirement involves determining your goals and...",
-                "url": "https://example.com/retirement",
-                "similarity": 0.65
+        vector = {
+            'id': id,
+            'values': embedding.tolist() if hasattr(embedding, 'tolist') else embedding,
+            'metadata': {
+                'text': doc,
+                'source_file': source_file,
+                'file_hash': source_file  # Using source_file as file_hash for now
             }
-        ]
+        }
+        vectors.append(vector)
+    
+    # Upsert vectors in batches of 100
+    batch_size = 100
+    total_upserted = 0
+    for i in range(0, len(vectors), batch_size):
+        batch = vectors[i:i + batch_size]
+        try:
+            index.upsert(vectors=batch)
+            total_upserted += len(batch)
+            logger.info(f"[VectorDB] Successfully upserted batch of {len(batch)} vectors. Total: {total_upserted}")
+        except Exception as e:
+            logger.error(f"[VectorDB] Error upserting batch: {str(e)}")
+            raise
+    
+    logger.info(f"[VectorDB] Successfully added all {total_upserted} documents to index")
+
+def retrieve_relevant_knowledge(query, top_k=3, index_name="investment-knowledge"):
+    logger.info(f"[VectorDB] Starting retrieval for query: {query[:50]}...")
+    index = get_index(index_name)
+    
+    # Check if index is empty
+    stats = index.describe_index_stats()
+    if stats.total_vector_count == 0:
+        logger.warning("[VectorDB] Index is empty!")
+        return []
+    
+    try:
+        query_embedding = generate_embeddings(query)
+        logger.info(f"[VectorDB] Generated query embedding with dimension: {len(query_embedding)}")
         
-        return mock_documents[:top_k]
+        results = index.query(
+            vector=query_embedding.tolist() if hasattr(query_embedding, 'tolist') else query_embedding,
+            top_k=top_k,
+            include_metadata=True
+        )
+        
+        if not results or not results.matches:
+            logger.warning("[VectorDB] No results found!")
+            return []
+        
+        # Extract text and source information from metadata
+        documents = []
+        for match in results.matches:
+            doc = {
+                'text': match.metadata['text'],
+                'source_file': match.metadata.get('source_file', 'unknown'),
+                'file_hash': match.metadata.get('file_hash', 'unknown')
+            }
+            documents.append(doc)
+            
+        logger.info(f"[VectorDB] Retrieved {len(documents)} relevant documents")
+        logger.debug(f"[VectorDB] First document preview: {documents[0]['text'][:100]}...")
+        return documents
+    except Exception as e:
+        logger.error(f"[VectorDB] Error during retrieval: {str(e)}")
+        raise
