@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useChat } from '@/context/ChatContext';
-import { Plus, History, ArrowLeft, ArrowRight, Settings, X } from 'lucide-react';
+import { Plus, History, X, Menu, Settings } from 'lucide-react';
 import Logo from '@/components/Logo';
 import ChatHistoryList from './chat/ChatHistoryList';
 import NewChatButton from './chat/NewChatButton';
@@ -71,13 +71,13 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
   return (
     <>
       <div 
-        className={`fixed inset-y-0 left-0 z-40 w-72 flex-shrink-0 flex flex-col overflow-hidden transform transition-transform duration-300 ease-in-out bg-sidebar border-r border-sidebar-border ${
+        className={`fixed inset-y-0 left-0 z-40 w-72 flex-shrink-0 flex flex-col overflow-hidden transform transition-transform duration-300 ease-in-out bg-gradient-to-b from-amber-50 to-orange-50 border-r border-amber-200 ${
           isOpen ? 'translate-x-0' : '-translate-x-full'
         } md:translate-x-0`}
       >
         <ChatSidebarHeader onClose={onClose} />
         
-        <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-sidebar-border scrollbar-track-transparent px-2 py-4">
+        <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-amber-300 scrollbar-track-transparent px-2 py-4">
           <NewChatButton onClick={onNewChat} />
           
           <div className="mt-6">
