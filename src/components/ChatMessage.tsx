@@ -2,6 +2,7 @@ import React from 'react';
 import { ChatMessage as ChatMessageType } from '@/types/chat';
 import { User, Bot } from 'lucide-react';
 import StreamingText from './StreamingText';
+import ReactMarkdown from 'react-markdown';
 
 interface ChatMessageProps {
   message: ChatMessageType;
@@ -26,7 +27,9 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message, isLatest = false }) 
             : 'bg-secondary text-secondary-foreground rounded-tl-none'
         }`}>
           {isUser ? (
-            <div className="whitespace-pre-wrap">{message.content}</div>
+            <div className="whitespace-pre-wrap">
+              <ReactMarkdown>{message.content}</ReactMarkdown>
+            </div>
           ) : (
             <StreamingText 
               text={message.content} 

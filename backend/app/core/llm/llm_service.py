@@ -24,7 +24,7 @@ def generate_response(prompt, max_tokens=1000):
     try:
         logger.info("[LLM] Sending request to Groq API")
         completion = client.chat.completions.create(
-            model="llama-3.3-70b-versatile",
+            model="deepseek-r1-distill-llama-70b",
             messages=[
                 {"role": "user", "content": prompt}
             ],

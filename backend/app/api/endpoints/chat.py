@@ -9,7 +9,7 @@ import logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-router = APIRouter(prefix="/chat", tags=["chat"])
+router = APIRouter(tags=["chat"])
 
 # Request models
 class ChatMessage(BaseModel):
@@ -44,6 +44,26 @@ async def send_message(message: ChatMessage):
         response_parts = response.split("\n\nSources:")
         content = response_parts[0]
         sources = response_parts[1] if len(response_parts) > 1 else None
+        
+        # Remove the think section if present
+        if "<think>" in content and "</think>" in content:
+            content = content.split("</think>")[1].strip()
+        
+        # Clean up the response format
+        # Remove "Answer:" prefixes and clean up line breaks
+        content = content.replace("Answer:", "").strip()
+        
+        # Clean up markdown formatting
+        # Remove extra asterisks from headers
+        content = content.replace("**Explanation", "#")
+        content = content.replace("**", "")
+        
+        # Clean up multiple line spaces and preserve paragraph structure
+        paragraphs = [p.strip() for p in content.split("\n\n") if p.strip()]
+        content = "\n\n".join(paragraphs)
+        
+        # Ensure proper markdown list formatting
+        content = content.replace("\n- ", "\n\n- ")
         
         # Store both content and sources in chat history
         chat_history[message.session_id].append({
