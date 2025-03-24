@@ -1,8 +1,7 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { X } from 'lucide-react';
-import Logo from '@/components/Logo';
+import { Menu } from 'lucide-react';
 
 interface ChatSidebarHeaderProps {
   onClose: () => void;
@@ -10,16 +9,15 @@ interface ChatSidebarHeaderProps {
 
 const ChatSidebarHeader: React.FC<ChatSidebarHeaderProps> = ({ onClose }) => {
   return (
-    <div className="p-4 border-b border-blue-200 bg-gradient-to-r from-indigo-100 to-blue-100">
+    <div className="p-4 border-b border-sidebar-border">
       <div className="flex items-center justify-between">
-        <Logo className="h-8 w-auto" />
         <Button
           variant="ghost"
           size="sm"
           onClick={onClose}
-          className="text-indigo-800 transition-transform duration-300 hover:bg-blue-200/50 md:hidden"
+          className="text-sidebar-foreground transition-transform duration-300"
         >
-          <X className="h-5 w-5" />
+          <Menu className="h-5 w-5" />
         </Button>
       </div>
     </div>

@@ -46,7 +46,7 @@ const ChatHistoryItem: React.FC<ChatHistoryItemProps> = ({
         className={`flex flex-col text-left rounded-md px-3 py-3 transition-colors text-sm ${
           chat.tag 
             ? `hover:bg-opacity-80 cursor-pointer` 
-            : 'hover:bg-indigo-100 hover:text-indigo-900 cursor-pointer'
+            : 'hover:bg-sidebar-accent hover:text-sidebar-accent-foreground cursor-pointer'
         }`}
         style={chat.tag ? { 
           backgroundColor: `${chat.tag.color}25`,
@@ -56,7 +56,7 @@ const ChatHistoryItem: React.FC<ChatHistoryItemProps> = ({
         <div className="flex items-center justify-between">
           <span className="font-medium truncate flex items-center gap-1.5 max-w-[82%] text-xs">
             {isPinned && (
-              <Pin className="inline h-5 w-5 text-indigo-600 fill-indigo-500" />
+              <Pin className="inline h-4 w-4 text-primary fill-primary" />
             )}
             {chat.preview.length > 30 ? chat.preview.substring(0, 30) + '...' : chat.preview}
             {chat.tag && (
@@ -81,26 +81,26 @@ const ChatHistoryItem: React.FC<ChatHistoryItemProps> = ({
       
       {/* Dropdown menu */}
       {isDropdownOpen && (
-        <div className="absolute right-2 top-10 z-10 bg-white shadow-md rounded-md py-1 animate-in slide-in-from-top-5 fade-in-20 w-48 border border-blue-200">
+        <div className="absolute right-2 top-10 z-10 bg-popover shadow-md rounded-md py-1 animate-in slide-in-from-top-5 fade-in-20 w-48">
           <button 
-            className="flex w-full items-center px-3 py-2 text-sm hover:bg-indigo-100 hover:text-indigo-900"
+            className="flex w-full items-center px-3 py-2 text-sm hover:bg-accent hover:text-accent-foreground"
             onClick={(e) => onPinChat(chat.id, e)}
           >
-            <Pin className="mr-2 h-5 w-5" stroke={isPinned ? "currentColor" : "currentColor"} fill={isPinned ? "currentColor" : "none"} />
+            <Pin className="mr-2 h-4 w-4" stroke={isPinned ? "currentColor" : "currentColor"} fill={isPinned ? "currentColor" : "none"} />
             {isPinned ? 'Unpin chat' : 'Pin chat'}
           </button>
           <button 
-            className="flex w-full items-center px-3 py-2 text-sm hover:bg-indigo-100 hover:text-indigo-900"
+            className="flex w-full items-center px-3 py-2 text-sm hover:bg-accent hover:text-accent-foreground"
             onClick={(e) => onAddTag(chat.id, e)}
           >
-            <Tag className="mr-2 h-5 w-5" />
+            <Tag className="mr-2 h-4 w-4" />
             Add Tag
           </button>
           <button 
             className="flex w-full items-center px-3 py-2 text-sm text-destructive hover:bg-destructive/10"
             onClick={(e) => onDeleteChat(chat.id, e)}
           >
-            <Trash2 className="mr-2 h-5 w-5" />
+            <Trash2 className="mr-2 h-4 w-4" />
             Delete chat
           </button>
         </div>
