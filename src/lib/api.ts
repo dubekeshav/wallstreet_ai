@@ -1,52 +1,77 @@
-import { ChatMessage, ChatResponse, ChatSession } from '@/types/chat';
 
-const API_BASE_URL = 'http://localhost:8000';
+import axios from 'axios';
+import { ChatMessage } from '@/types/chat';
+
+const BASE_URL = 'http://localhost:8000';
+
+const api = axios.create({
+  baseURL: BASE_URL,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
 
 export const chatApi = {
-  // Create a new chat session
-  createNewChat: async (): Promise<ChatSession> => {
-    const response = await fetch(`${API_BASE_URL}/chat/new`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
-    
-    if (!response.ok) {
-      throw new Error('Failed to create new chat session');
-    }
-    
-    return response.json();
+  createNewChat: async () => {
+    const response = await api.post('/chat/new');
+    return response.data;
   },
 
-  // Send a message and get response
-  sendMessage: async (sessionId: string, query: string): Promise<ChatResponse> => {
-    const response = await fetch(`${API_BASE_URL}/chat/send`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        session_id: sessionId,
-        query,
-      }),
+  sendMessage: async (sessionId: string, query: string) => {
+    const response = await api.post('/chat/send', {
+      session_id: sessionId,
+      query,
     });
-    
-    if (!response.ok) {
-      throw new Error('Failed to send message');
-    }
-    
-    return response.json();
+    return response.data;
   },
 
-  // Get chat history
   getChatHistory: async (sessionId: string): Promise<ChatMessage[]> => {
-    const response = await fetch(`${API_BASE_URL}/chat/history/${sessionId}`);
+    const response = await api.get(`/chat/history/${sessionId}`);
+    const messages = response.data;
     
-    if (!response.ok) {
-      throw new Error('Failed to get chat history');
-    }
-    
-    return response.json();
+    // Convert API response format to our ChatMessage format
+    return messages.map((msg: any) => ({
+      id: `msg-${msg.timestamp || Date.now()}`,
+      content: msg.content,
+      sender: msg.role === 'user' ? 'user' : 'assistant',
+      timestamp: msg.timestamp ? new Date(msg.timestamp * 1000) : new Date(),
+      sources: msg.sources,
+    }));
   },
-}; 
+  
+  getAllChats: async () => {
+    const response = await api.get('/chat/chats');
+    return response.data.map((chat: any) => ({
+      id: chat.id,
+      title: chat.preview,
+      preview: chat.preview,
+      timestamp: new Date(chat.timestamp * 1000),
+      isPinned: chat.pinned,
+      tag: chat.tag,
+    }));
+  },
+  
+  pinChat: async (sessionId: string, pinned: boolean) => {
+    const response = await api.post('/chat/pin', {
+      session_id: sessionId,
+      pinned,
+    });
+    return response.data;
+  },
+  
+  tagChat: async (sessionId: string, tagName: string, tagColor: string) => {
+    const response = await api.post('/chat/tag', {
+      session_id: sessionId,
+      tag_name: tagName,
+      tag_color: tagColor,
+    });
+    return response.data;
+  },
+  
+  deleteChat: async (sessionId: string) => {
+    const response = await api.delete(`/chat/delete/${sessionId}`);
+    return response.data;
+  },
+};
+
+export default api;

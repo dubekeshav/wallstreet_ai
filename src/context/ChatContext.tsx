@@ -1,6 +1,8 @@
+
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { ChatMessage } from '@/types/chat';
 import { chatApi } from '@/lib/api';
+import { useToast } from '@/components/ui/use-toast';
 
 interface ChatContextType {
   messages: ChatMessage[];
@@ -9,8 +11,23 @@ interface ChatContextType {
   addMessage: (content: string, sender: 'user' | 'assistant') => void;
   clearMessages: () => void;
   setIsLoading: (isLoading: boolean) => void;
-  loadChatHistory: (chatId: string) => void;
+  loadChatHistory: (chatId: string) => Promise<void>;
   sendMessage: (content: string) => Promise<void>;
+  allChats: Array<{
+    id: string;
+    title: string;
+    preview: string;
+    timestamp: Date;
+    isPinned?: boolean;
+    tag?: {
+      name: string;
+      color: string;
+    };
+  }>;
+  fetchAllChats: () => Promise<void>;
+  pinChat: (chatId: string, isPinned: boolean) => Promise<void>;
+  tagChat: (chatId: string, tagName: string, tagColor: string) => Promise<void>;
+  deleteChat: (chatId: string) => Promise<void>;
 }
 
 const ChatContext = createContext<ChatContextType | undefined>(undefined);
@@ -50,6 +67,19 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [sessionId, setSessionId] = useState<string | null>(null);
+  const [allChats, setAllChats] = useState<Array<{
+    id: string;
+    title: string;
+    preview: string;
+    timestamp: Date;
+    isPinned?: boolean;
+    tag?: {
+      name: string;
+      color: string;
+    };
+  }>>([]);
+  
+  const { toast } = useToast();
 
   // Create a new chat session when the provider mounts
   useEffect(() => {
@@ -59,6 +89,9 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
         const session = await chatApi.createNewChat();
         setSessionId(session.session_id);
         console.log('Chat session initialized:', session.session_id);
+        
+        // Fetch all chats after initializing a new chat
+        await fetchAllChats();
       } catch (error) {
         console.error('Error initializing chat:', error);
         // Try to recover by creating a new session
@@ -76,6 +109,20 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 
     initializeChat();
   }, []);
+
+  const fetchAllChats = async () => {
+    try {
+      const chats = await chatApi.getAllChats();
+      setAllChats(chats);
+    } catch (error) {
+      console.error('Error fetching chats:', error);
+      toast({
+        title: "Error",
+        description: "Failed to fetch chat history.",
+        variant: "destructive",
+      });
+    }
+  };
 
   const addMessage = (content: string, sender: 'user' | 'assistant') => {
     const newMessage: ChatMessage = {
@@ -112,18 +159,14 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
       // Get response from API
       const response = await chatApi.sendMessage(sessionId!, content);
       
-      // Add assistant message with empty content first
-      const assistantMessageId = `msg-${Date.now()}`;
-      addMessage('', 'assistant');
+      // Add assistant message
+      addMessage(response.response, 'assistant');
       
-      // Update the message with the actual content
-      setMessages(prev => prev.map(msg => 
-        msg.id === assistantMessageId 
-          ? { ...msg, content: response.response }
-          : msg
-      ));
+      // Refresh all chats after sending a message to update previews
+      await fetchAllChats();
     } catch (error) {
       console.error('Error sending message:', error);
+      
       // If the error is due to an invalid session, try to recover
       if (error instanceof Error && error.message.includes('Session not found')) {
         try {
@@ -131,6 +174,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
           const session = await chatApi.createNewChat();
           setSessionId(session.session_id);
           console.log('Created new session:', session.session_id);
+          
           // Retry sending the message
           const response = await chatApi.sendMessage(session.session_id, content);
           addMessage(response.response, 'assistant');
@@ -153,6 +197,9 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
       setSessionId(session.session_id);
       setMessages([]);
       console.log('Cleared messages and created new session:', session.session_id);
+      
+      // Refresh all chats after creating a new one
+      await fetchAllChats();
     } catch (error) {
       console.error('Error starting new chat:', error);
       // Fallback to just clearing messages if API fails
@@ -168,10 +215,94 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
       const history = await chatApi.getChatHistory(chatId);
       setMessages(history);
       setSessionId(chatId);
+      
+      console.log('Loaded chat history for session:', chatId);
     } catch (error) {
       console.error('Error loading chat history:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load chat history.",
+        variant: "destructive", 
+      });
     } finally {
       setIsLoading(false);
+    }
+  };
+  
+  const pinChat = async (chatId: string, isPinned: boolean) => {
+    try {
+      await chatApi.pinChat(chatId, isPinned);
+      // Update local state
+      setAllChats(prevChats => 
+        prevChats.map(chat => 
+          chat.id === chatId ? {...chat, isPinned} : chat
+        )
+      );
+      
+      toast({
+        title: isPinned ? "Chat pinned" : "Chat unpinned",
+        description: isPinned ? "Chat has been pinned to the top." : "Chat has been unpinned.",
+      });
+    } catch (error) {
+      console.error('Error pinning chat:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update pin status.",
+        variant: "destructive",
+      });
+    }
+  };
+  
+  const tagChat = async (chatId: string, tagName: string, tagColor: string) => {
+    try {
+      await chatApi.tagChat(chatId, tagName, tagColor);
+      
+      // Update local state
+      setAllChats(prevChats => 
+        prevChats.map(chat => 
+          chat.id === chatId 
+            ? {...chat, tag: { name: tagName, color: tagColor }} 
+            : chat
+        )
+      );
+      
+      toast({
+        title: "Chat tagged",
+        description: `Tagged as "${tagName}".`,
+      });
+    } catch (error) {
+      console.error('Error tagging chat:', error);
+      toast({
+        title: "Error",
+        description: "Failed to add tag.",
+        variant: "destructive",
+      });
+    }
+  };
+  
+  const deleteChat = async (chatId: string) => {
+    try {
+      await chatApi.deleteChat(chatId);
+      
+      // Update local state
+      setAllChats(prevChats => prevChats.filter(chat => chat.id !== chatId));
+      
+      // If the current chat was deleted, clear the messages
+      if (sessionId === chatId) {
+        clearMessages();
+      }
+      
+      toast({
+        title: "Chat deleted",
+        description: "Chat has been permanently deleted.",
+      });
+    } catch (error) {
+      console.error('Error deleting chat:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete chat.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -186,6 +317,11 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
         setIsLoading,
         loadChatHistory,
         sendMessage,
+        allChats,
+        fetchAllChats,
+        pinChat,
+        tagChat,
+        deleteChat,
       }}
     >
       {children}

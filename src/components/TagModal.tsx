@@ -11,21 +11,13 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/components/ui/use-toast';
 import { Tag, Plus, X, Check } from 'lucide-react';
+import { useChat } from '@/context/ChatContext';
 
 interface TagModalProps {
   isOpen: boolean;
   onClose: () => void;
   chatId: string | null;
 }
-
-// Mock existing tags with warm tones suitable for cream/beige theme
-const existingTags = [
-  { name: 'Stocks', color: '#FF8C00' },     // Dark Orange
-  { name: 'Learning', color: '#4682B4' },   // Steel Blue
-  { name: 'Crypto', color: '#7B68EE' },     // Medium Slate Blue
-  { name: 'Retirement', color: '#2E8B57' }, // Sea Green
-  { name: 'Research', color: '#CD853F' }    // Peru
-];
 
 // Predefined colors for new tags (warm/earthy tones for cream/beige theme)
 const colorOptions = [
@@ -45,16 +37,39 @@ const TagModal: React.FC<TagModalProps> = ({ isOpen, onClose, chatId }) => {
   const [selectedColor, setSelectedColor] = useState(colorOptions[0]);
   const [isCreatingNew, setIsCreatingNew] = useState(false);
   const [animateIn, setAnimateIn] = useState(false);
+  const [existingTags, setExistingTags] = useState<Array<{name: string, color: string}>>([]);
   
   const { toast } = useToast();
+  const { allChats, tagChat } = useChat();
   
   useEffect(() => {
     if (isOpen) {
       setAnimateIn(true);
+      
+      // Extract existing tags from all chats
+      const tagsSet = new Set<string>();
+      const tagsMap = new Map<string, string>();
+      
+      allChats.forEach(chat => {
+        if (chat.tag) {
+          tagsSet.add(chat.tag.name);
+          tagsMap.set(chat.tag.name, chat.tag.color);
+        }
+      });
+      
+      const uniqueTags = Array.from(tagsSet).map(tagName => ({
+        name: tagName,
+        color: tagsMap.get(tagName) || colorOptions[0]
+      }));
+      
+      setExistingTags(uniqueTags);
     } else {
       setAnimateIn(false);
+      setSelectedTag(null);
+      setNewTagName('');
+      setIsCreatingNew(false);
     }
-  }, [isOpen]);
+  }, [isOpen, allChats]);
   
   const handleSelectTag = (tagName: string) => {
     if (selectedTag === tagName) {
@@ -75,6 +90,15 @@ const TagModal: React.FC<TagModalProps> = ({ isOpen, onClose, chatId }) => {
   };
   
   const handleSave = () => {
+    if (!chatId) {
+      toast({
+        title: "Error",
+        description: "No chat selected.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     if (isCreatingNew && !newTagName.trim()) {
       toast({
         title: "Tag name required",
@@ -84,9 +108,7 @@ const TagModal: React.FC<TagModalProps> = ({ isOpen, onClose, chatId }) => {
       return;
     }
     
-    const tagName = isCreatingNew ? newTagName : selectedTag;
-    
-    if (!tagName && !isCreatingNew) {
+    if (!selectedTag && !isCreatingNew) {
       toast({
         title: "No tag selected",
         description: "Please select an existing tag or create a new one.",
@@ -95,11 +117,15 @@ const TagModal: React.FC<TagModalProps> = ({ isOpen, onClose, chatId }) => {
       return;
     }
     
-    toast({
-      title: "Tag added",
-      description: `Chat tagged as "${isCreatingNew ? newTagName : tagName}".`,
-      duration: 2000,
-    });
+    // Use the selected existing tag or create a new one
+    if (isCreatingNew) {
+      // Create new tag
+      tagChat(chatId, newTagName, selectedColor);
+    } else if (selectedTag) {
+      // Use existing tag
+      const tagColor = existingTags.find(t => t.name === selectedTag)?.color || colorOptions[0];
+      tagChat(chatId, selectedTag, tagColor);
+    }
     
     // Reset form and close modal
     setSelectedTag(null);
@@ -119,34 +145,39 @@ const TagModal: React.FC<TagModalProps> = ({ isOpen, onClose, chatId }) => {
         </DialogHeader>
         
         <div className={`grid gap-4 py-4 transition-all duration-300 ${animateIn ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}>
-          <div className="space-y-2">
-            <h3 className="text-sm font-medium">Select Existing Tag</h3>
-            <div className="flex flex-wrap gap-2">
-              {existingTags.map((tag) => (
-                <button
-                  key={tag.name}
-                  className={`px-3 py-1.5 rounded-full text-white text-sm transition-all duration-200 flex items-center gap-1 ${
-                    selectedTag === tag.name ? 'ring-2 ring-offset-2 scale-105' : 'hover:opacity-80'
-                  }`}
-                  style={{ backgroundColor: tag.color }}
-                  onClick={() => handleSelectTag(tag.name)}
-                >
-                  {selectedTag === tag.name && (
-                    <Check className="h-3 w-3" />
-                  )}
-                  {tag.name}
-                </button>
-              ))}
-              <button
-                className={`flex items-center gap-1 px-3 py-1.5 rounded-full bg-accent text-accent-foreground text-sm transition-all duration-200 ${
-                  isCreatingNew ? 'ring-2 ring-primary ring-offset-2 scale-105' : 'hover:bg-accent/80'
-                }`}
-                onClick={handleCreateMode}
-              >
-                <Plus className="h-3.5 w-3.5" />
-                New Tag
-              </button>
+          {existingTags.length > 0 && (
+            <div className="space-y-2">
+              <h3 className="text-sm font-medium">Select Existing Tag</h3>
+              <div className="flex flex-wrap gap-2">
+                {existingTags.map((tag) => (
+                  <button
+                    key={tag.name}
+                    className={`px-3 py-1.5 rounded-full text-white text-sm transition-all duration-200 flex items-center gap-1 ${
+                      selectedTag === tag.name ? 'ring-2 ring-offset-2 scale-105' : 'hover:opacity-80'
+                    }`}
+                    style={{ backgroundColor: tag.color }}
+                    onClick={() => handleSelectTag(tag.name)}
+                  >
+                    {selectedTag === tag.name && (
+                      <Check className="h-3 w-3" />
+                    )}
+                    {tag.name}
+                  </button>
+                ))}
+              </div>
             </div>
+          )}
+          
+          <div>
+            <button
+              className={`flex items-center gap-1 px-3 py-1.5 rounded-full bg-accent text-accent-foreground text-sm transition-all duration-200 ${
+                isCreatingNew ? 'ring-2 ring-primary ring-offset-2 scale-105' : 'hover:bg-accent/80'
+              }`}
+              onClick={handleCreateMode}
+            >
+              <Plus className="h-3.5 w-3.5" />
+              New Tag
+            </button>
           </div>
           
           {isCreatingNew && (

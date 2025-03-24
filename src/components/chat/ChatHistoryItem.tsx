@@ -54,14 +54,14 @@ const ChatHistoryItem: React.FC<ChatHistoryItemProps> = ({
         onClick={(e) => onChatClick(chat.id, e)}
       >
         <div className="flex items-center justify-between">
-          <span className="font-medium truncate flex items-center gap-1 max-w-[82%] text-xs">
+          <span className="font-medium truncate flex items-center gap-1.5 max-w-[82%] text-xs">
             {isPinned && (
-              <Pin className="inline h-3 w-3 text-sidebar-primary" />
+              <Pin className="inline h-4 w-4 text-primary fill-primary" />
             )}
             {chat.preview.length > 30 ? chat.preview.substring(0, 30) + '...' : chat.preview}
             {chat.tag && (
               <span 
-                className="inline-block px-1.5 py-0.5 text-[10px] rounded-full text-white ml-1"
+                className="inline-block px-1.5 py-0.5 text-[10px] rounded-full text-white ml-1 shadow-sm"
                 style={{ backgroundColor: chat.tag.color }}
               >
                 {chat.tag.name}
@@ -86,7 +86,7 @@ const ChatHistoryItem: React.FC<ChatHistoryItemProps> = ({
             className="flex w-full items-center px-3 py-2 text-sm hover:bg-accent hover:text-accent-foreground"
             onClick={(e) => onPinChat(chat.id, e)}
           >
-            <Pin className="mr-2 h-4 w-4" />
+            <Pin className="mr-2 h-4 w-4" stroke={isPinned ? "currentColor" : "currentColor"} fill={isPinned ? "currentColor" : "none"} />
             {isPinned ? 'Unpin chat' : 'Pin chat'}
           </button>
           <button 
