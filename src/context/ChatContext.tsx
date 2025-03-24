@@ -15,6 +15,37 @@ interface ChatContextType {
 
 const ChatContext = createContext<ChatContextType | undefined>(undefined);
 
+// Helper function to check if message is out of scope
+const isOutOfScope = (content: string): boolean => {
+  const outOfScopePatterns = [
+    /are you (dumb|stupid|idiot)/i,
+    /why do you exist/i,
+    /what are you/i,
+    /who are you/i,
+    /are you real/i,
+    /are you human/i,
+    /are you alive/i,
+    /do you have feelings/i,
+    /do you think/i,
+    /are you conscious/i,
+    /are you sentient/i
+  ];
+  
+  return outOfScopePatterns.some(pattern => pattern.test(content));
+};
+
+// Helper function to get out of scope response
+const getOutOfScopeResponse = (): string => {
+  const responses = [
+    "I apologize, but I'm focused on providing financial analysis and market insights. How can I help you with that?",
+    "I'm here to assist with financial market analysis and insights. What would you like to know about the markets?",
+    "Let's focus on financial analysis and market insights. What specific information are you looking for?",
+    "I'm specialized in financial market analysis. How can I help you with your investment questions?",
+    "I'm here to help with financial analysis. What would you like to know about the markets?"
+  ];
+  return responses[Math.floor(Math.random() * responses.length)];
+};
+
 export function ChatProvider({ children }: { children: React.ReactNode }) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -59,6 +90,13 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
   const sendMessage = async (content: string) => {
     try {
       setIsLoading(true);
+      
+      // Check if message is out of scope
+      if (isOutOfScope(content)) {
+        addMessage(content, 'user');
+        addMessage(getOutOfScopeResponse(), 'assistant');
+        return;
+      }
       
       // Ensure we have a valid session
       if (!sessionId) {
