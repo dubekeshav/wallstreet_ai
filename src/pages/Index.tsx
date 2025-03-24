@@ -66,7 +66,7 @@ const Index: React.FC = () => {
       {/* Hero Section */}
       <section className="relative min-h-screen flex flex-col items-center justify-center px-4 text-center">
         <div className="max-w-5xl mx-auto">
-          <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold mb-6 tracking-tight animate-fade-in bg-clip-text text-transparent bg-gradient-to-r from-primary via-amber-500 to-yellow-500">
+          <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold mb-6 tracking-tight animate-fade-in bg-clip-text text-transparent bg-gradient-to-r from-primary via-amber-500 to-yellow-500" style={{paddingTop: "3rem"}}>
             WallStreet AI
           </h1>
           

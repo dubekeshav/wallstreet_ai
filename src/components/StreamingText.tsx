@@ -6,8 +6,8 @@ interface StreamingTextProps {
   className?: string;
 }
 
-const StreamingText: React.FC<StreamingTextProps> = ({ 
-  text, 
+const StreamingText: React.FC<StreamingTextProps> = ({
+  text,
   speed = 20,
   className = ''
 }) => {

@@ -27,8 +27,17 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
         setIsLoading(true);
         const session = await chatApi.createNewChat();
         setSessionId(session.session_id);
+        console.log('Chat session initialized:', session.session_id);
       } catch (error) {
         console.error('Error initializing chat:', error);
+        // Try to recover by creating a new session
+        try {
+          const session = await chatApi.createNewChat();
+          setSessionId(session.session_id);
+          console.log('Recovered chat session:', session.session_id);
+        } catch (retryError) {
+          console.error('Failed to recover chat session:', retryError);
+        }
       } finally {
         setIsLoading(false);
       }
@@ -48,18 +57,22 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
   };
 
   const sendMessage = async (content: string) => {
-    if (!sessionId) {
-      console.error('No active chat session');
-      return;
-    }
-
     try {
       setIsLoading(true);
+      
+      // Ensure we have a valid session
+      if (!sessionId) {
+        console.log('No active session, creating new one...');
+        const session = await chatApi.createNewChat();
+        setSessionId(session.session_id);
+        console.log('Created new session:', session.session_id);
+      }
+
       // Add user message immediately
       addMessage(content, 'user');
       
       // Get response from API
-      const response = await chatApi.sendMessage(sessionId, content);
+      const response = await chatApi.sendMessage(sessionId!, content);
       
       // Add assistant message with empty content first
       const assistantMessageId = `msg-${Date.now()}`;
@@ -73,7 +86,23 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
       ));
     } catch (error) {
       console.error('Error sending message:', error);
-      addMessage("Sorry, I encountered an error. Please try again later.", 'assistant');
+      // If the error is due to an invalid session, try to recover
+      if (error instanceof Error && error.message.includes('Session not found')) {
+        try {
+          console.log('Session invalid, creating new one...');
+          const session = await chatApi.createNewChat();
+          setSessionId(session.session_id);
+          console.log('Created new session:', session.session_id);
+          // Retry sending the message
+          const response = await chatApi.sendMessage(session.session_id, content);
+          addMessage(response.response, 'assistant');
+        } catch (retryError) {
+          console.error('Failed to recover from session error:', retryError);
+          addMessage("Sorry, I encountered an error. Please try again later.", 'assistant');
+        }
+      } else {
+        addMessage("Sorry, I encountered an error. Please try again later.", 'assistant');
+      }
     } finally {
       setIsLoading(false);
     }
@@ -85,6 +114,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
       const session = await chatApi.createNewChat();
       setSessionId(session.session_id);
       setMessages([]);
+      console.log('Cleared messages and created new session:', session.session_id);
     } catch (error) {
       console.error('Error starting new chat:', error);
       // Fallback to just clearing messages if API fails
@@ -99,6 +129,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
       setIsLoading(true);
       const history = await chatApi.getChatHistory(chatId);
       setMessages(history);
+      setSessionId(chatId);
     } catch (error) {
       console.error('Error loading chat history:', error);
     } finally {
