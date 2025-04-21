@@ -1,24 +1,8 @@
-# Welcome to your Lovable project
+# Welcome to WallStreet AI
 
 ## Project info
 
-**URL**: https://lovable.dev/projects/5bbc3dc8-0592-400e-82b2-e81074792795
-
-## How can I edit this code?
-
-There are several ways of editing your application.
-
-**Use Lovable**
-
-Simply visit the [Lovable Project](https://lovable.dev/projects/5bbc3dc8-0592-400e-82b2-e81074792795) and start prompting.
-
-Changes made via Lovable will be committed automatically to this repo.
-
 **Use your preferred IDE**
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
 
 Follow these steps:
 
@@ -36,34 +20,31 @@ npm i
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+# For the Python Server :
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+```sh
+# 1. Create a virual environment :
+conda create -n env_name
 
-**Use GitHub Codespaces**
+# 2. Activate the virtual environment :
+conda activate env_name
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+# 3. Install the dependencies :
+Run the following code in the root directory of the project :
+pip install -r requirements.txt
 
-## What technologies are used for this project?
+# 4. Run the following code to start up the application :
+streamlit run --server.fileWatcherType none app.py
 
-This project is built with .
+Here, I had to turn off the filewatcher to fix a build issue due to incompatibility with either of streamlit or pytorch versions.
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+I have uncommented the following in app.py for now, to disable the filewatcher :
 
-## How can I deploy this project?
+```{python}
+os.environ["STREAMLIT_SERVER_ENABLE_FILE_WATCHER"] = "false"
+```
 
-Simply open [Lovable](https://lovable.dev/projects/5bbc3dc8-0592-400e-82b2-e81074792795) and click on Share -> Publish.
+So, we can directly run using :
+streamlit run app.py
 
-## I want to use a custom domain - is that possible?
-
-We don't support custom domains (yet). If you want to deploy your project under your own domain then we recommend using Netlify. Visit our docs for more details: [Custom domains](https://docs.lovable.dev/tips-tricks/custom-domain/)
+However, if it is commented, we will have to use the 1st command with fileWatcherType none.
